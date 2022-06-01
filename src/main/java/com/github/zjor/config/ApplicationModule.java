@@ -38,8 +38,9 @@ public class ApplicationModule extends AbstractModule {
             @Named(EnvironmentModule.TELEGRAM_BOT_USERNAME) String botUsername,
             @Named(EnvironmentModule.MQTT_USER) String mqttUser,
             @Named(EnvironmentModule.MQTT_PASSWORD) String mqttPassword,
-            Mqtt5BlockingClient mqttClient) {
-        return new MqttForwarderBot(token, botUsername, mqttUser, mqttPassword, mqttClient);
+            Mqtt5BlockingClient mqttClient,
+            SubscriptionService subscriptionService) {
+        return new MqttForwarderBot(token, botUsername, mqttUser, mqttPassword, mqttClient, subscriptionService);
     }
 
     @Inject
