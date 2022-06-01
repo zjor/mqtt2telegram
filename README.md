@@ -30,15 +30,18 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 - java mongo driver & atlas cloud
 
 ### TODO
-- hide all creds to .env / config & gitignore
-- configure persistence => atlas mongoDB
-- store subscriptions during service restart
+- [v] hide all creds to .env / config & gitignore
+- [v] configure persistence => atlas mongoDB
+- [v] store subscriptions during service restart
 - list my subscriptions
 - support unsub
 - inline keyboard
 - deploy to my cluster
 - opensource
 - add rest API to mqtt with Javalin
+- restore subscriptions asynchronously
+- add bot documentation
+- send test message to itself
 
 ## Libraries
 - [Telegram Bot API](https://github.com/rubenlagus/TelegramBots)
