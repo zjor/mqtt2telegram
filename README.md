@@ -36,12 +36,15 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 - list my subscriptions
 - support unsub
 - inline keyboard
-- deploy to my cluster
+- [v] deploy to my cluster
 - opensource
 - add rest API to mqtt with Javalin
 - restore subscriptions asynchronously
-- add bot documentation
+- add bot self-documentation
 - send test message to itself
+- github pages
+- deploy with gitlab actions
+- publish articles (medium, habr, arduino)
 
 ## Libraries
 - [Telegram Bot API](https://github.com/rubenlagus/TelegramBots)

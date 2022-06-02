@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.app }}
+  name: {{ .Values.app }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app }}
+    spec:
+      restartPolicy: Always
+      containers:
+        - image: "{{ .Values.image }}:{{ .Values.version }}"
+          imagePullPolicy: Always
+          name: {{ .Values.app }}
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: MONGO_URI
+                  optional: false
+            - name: MQTT_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: MQTT_HOST
+                  optional: false
+            - name: MQTT_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: MQTT_PORT
+                  optional: false
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: MQTT_USER
+                  optional: false
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: MQTT_PASSWORD
+                  optional: false
+            - name: TELEGRAM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: TELEGRAM_TOKEN
+                  optional: false
+            - name: TELEGRAM_BOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: TELEGRAM_BOT_USERNAME
+                  optional: false
