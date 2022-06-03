@@ -33,14 +33,15 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 - [v] hide all creds to .env / config & gitignore
 - [v] configure persistence => atlas mongoDB
 - [v] store subscriptions during service restart
-- list my subscriptions
-- support unsub
-- inline keyboard
+- [v] list my subscriptions
+- [v] support unsub
 - [v] deploy to my cluster
 - opensource
 - add rest API to mqtt with Javalin
 - restore subscriptions asynchronously
-- add bot self-documentation
+- [v] add bot self-documentation
+- provide credentials to subscribed users to use REST API
+- on subscribe show `curl` example show to send a test message
 - send test message to itself
 - github pages
 - deploy with gitlab actions
