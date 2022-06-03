@@ -8,6 +8,7 @@ import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.objects.Locality;
 import org.telegram.abilitybots.api.objects.Privacy;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -88,7 +89,7 @@ public class MqttForwarderBot extends AbilityBot {
         return Ability.builder()
                 .name("sub")
                 .input(1)
-                .info("Subscribes to a topic")
+                .info("Subscribes to a topic. Usage: /sub <topic>")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
@@ -104,7 +105,7 @@ public class MqttForwarderBot extends AbilityBot {
         return Ability.builder()
                 .name("list")
                 .input(0)
-                .info("List my subscriptions")
+                .info("Lists my subscriptions")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
@@ -126,7 +127,7 @@ public class MqttForwarderBot extends AbilityBot {
         return Ability.builder()
                 .name("unsub")
                 .input(1)
-                .info("Unsubscribe from the topic")
+                .info("Unsubscribes from the topic. Usage: /unsub <topic>")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
@@ -139,7 +140,34 @@ public class MqttForwarderBot extends AbilityBot {
                 .build();
     }
 
-    @Override
+    private String resolveFirstName(Update update) {
+        if (update.hasMessage()) {
+            return update.getMessage().getFrom().getFirstName();
+        } else {
+            return "Dear User";
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public Ability startAbility() {
+        return Ability.builder()
+                .name("start")
+                .input(0)
+                .info("Shows welcome message")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(ctx -> {
+                    var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n");
+                    msg.append("I'm Mqtt2TelegramBot, I can subscribe to MQTT topics and forward messages to you.\n");
+                    msg.append("Please use `/commands` to see the list of available commands\n\n");
+                    msg.append("Happy messaging!");
+                    silent.sendMd(msg.toString(), ctx.chatId());
+                })
+                .build();
+    }
+
+
+        @Override
     public long creatorId() {
         return 79079907;
     }
