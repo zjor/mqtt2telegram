@@ -1,7 +1,7 @@
 package com.github.zjor.telegram;
 
+import com.github.zjor.sub.Subscription;
 import com.github.zjor.sub.SubscriptionService;
-import com.google.common.base.Strings;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -10,6 +10,7 @@ import org.telegram.abilitybots.api.objects.Locality;
 import org.telegram.abilitybots.api.objects.Privacy;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.hivemq.client.mqtt.MqttGlobalPublishFilter.ALL;
@@ -49,12 +50,16 @@ public class MqttForwarderBot extends AbilityBot {
 
         restoreSubscriptions();
 
-        mqttClient.toAsync().publishes(ALL, publish -> {
-            var levels = publish.getTopic().getLevels();
+        mqttClient.toAsync().publishes(ALL, msg -> {
+            log.info("[Message received] topic: {}; payload size: {}",
+                    msg.getTopic(),
+                    msg.getPayload().map(buf -> buf.remaining()).orElse(0));
+
+            var levels = msg.getTopic().getLevels();
             var chatId = levels.get(0);
             var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
             var message = "`[" + topic + "]`\n" +
-                    UTF_8.decode(publish.getPayload().get());
+                    UTF_8.decode(msg.getPayload().get());
             silent.sendMd(message, Long.valueOf(chatId));
         });
     }
@@ -82,17 +87,54 @@ public class MqttForwarderBot extends AbilityBot {
     public Ability subscribeAbility() {
         return Ability.builder()
                 .name("sub")
+                .input(1)
                 .info("Subscribes to a topic")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
                     String topic = ctx.firstArg();
-                    if (Strings.isNullOrEmpty(topic)) {
-                        silent.send("Topic is empty, please repeat the command", ctx.chatId());
+                    var fullTopicName = subscribe(ctx.chatId(), topic);
+                    silent.sendMd("Subscribed to `" + fullTopicName + "`", ctx.chatId());
+                })
+                .build();
+    }
+
+    @SuppressWarnings("unused")
+    public Ability listSubscriptionsAbility() {
+        return Ability.builder()
+                .name("list")
+                .input(0)
+                .info("List my subscriptions")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(ctx -> {
+                    List<Subscription> subs = subscriptionService.getMySubscriptions(String.valueOf(ctx.chatId()));
+                    if (subs.isEmpty()) {
+                        silent.send("No subscriptions", ctx.chatId());
                     } else {
-                        var fullTopicName = subscribe(ctx.chatId(), topic);
-                        silent.send("Subscribed to " + fullTopicName, ctx.chatId());
+                        StringBuilder msg = new StringBuilder("```\n");
+                        subs.forEach(s -> msg.append("- ").append(s.getTopic()).append('\n'));
+                        msg.append("```");
+                        silent.sendMd(msg.toString(), ctx.chatId());
                     }
+                })
+                .build();
+    }
+
+    @SuppressWarnings("unused")
+    public Ability unsubscribeAbility() {
+        return Ability.builder()
+                .name("unsub")
+                .input(1)
+                .info("Unsubscribe from the topic")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(ctx -> {
+                    String topic = ctx.firstArg();
+                    subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
+                            .ifPresentOrElse(
+                                    sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
+                                    () -> silent.send("Topic was not found", ctx.chatId()));
                 })
                 .build();
     }
