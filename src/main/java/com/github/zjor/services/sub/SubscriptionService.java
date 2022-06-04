@@ -1,8 +1,7 @@
-package com.github.zjor.sub;
+package com.github.zjor.services.sub;
 
+import com.github.zjor.services.AbstractMongoService;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
 import java.util.List;
@@ -13,10 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class SubscriptionService {
-
-    private static final String DB_NAME = "mqtt2telegram";
-    private static final String COLLECTION_NAME = "subscriptions";
+public class SubscriptionService extends AbstractMongoService {
 
     private static final BiFunction<String, String, Document> USER_ID_AND_TOPIC_FILTER = (userId, topic)
             -> new Document(Map.of(Subscription.KEY_USER_ID, userId, Subscription.KEY_TOPIC, topic));
@@ -24,18 +20,14 @@ public class SubscriptionService {
     private static final Function<String, Document> USER_ID_FILTER = (userId)
             -> new Document(Map.of(Subscription.KEY_USER_ID, userId));
 
-    private final MongoClient client;
 
     public SubscriptionService(MongoClient client) {
-        this.client = client;
+        super(client);
     }
 
-    private MongoDatabase d() {
-        return client.getDatabase(DB_NAME);
-    }
-
-    private MongoCollection<Document> c() {
-        return d().getCollection(COLLECTION_NAME);
+    @Override
+    protected String getCollectionName() {
+        return "subscriptions";
     }
 
     public Optional<Subscription> findSubscription(String userId, String topic) {

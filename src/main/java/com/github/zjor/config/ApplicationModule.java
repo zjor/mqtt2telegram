@@ -1,6 +1,7 @@
 package com.github.zjor.config;
 
-import com.github.zjor.sub.SubscriptionService;
+import com.github.zjor.services.sub.SubscriptionService;
+import com.github.zjor.services.users.UserService;
 import com.github.zjor.telegram.MqttForwarderBot;
 import com.github.zjor.telegram.TelegramBotRunner;
 import com.google.inject.AbstractModule;
@@ -39,8 +40,9 @@ public class ApplicationModule extends AbstractModule {
             @Named(EnvironmentModule.MQTT_USER) String mqttUser,
             @Named(EnvironmentModule.MQTT_PASSWORD) String mqttPassword,
             Mqtt5BlockingClient mqttClient,
+            UserService userService,
             SubscriptionService subscriptionService) {
-        return new MqttForwarderBot(token, botUsername, mqttUser, mqttPassword, mqttClient, subscriptionService);
+        return new MqttForwarderBot(token, botUsername, mqttUser, mqttPassword, mqttClient, userService, subscriptionService);
     }
 
     @Inject
@@ -62,5 +64,12 @@ public class ApplicationModule extends AbstractModule {
     @Singleton
     public SubscriptionService subscriptionService(MongoClient mongoClient) {
         return new SubscriptionService(mongoClient);
+    }
+
+    @Inject
+    @Provides
+    @Singleton
+    public UserService userService(MongoClient mongoClient) {
+        return new UserService(mongoClient);
     }
 }

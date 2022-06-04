@@ -16,8 +16,10 @@ PAYLOAD="Header
 - two
 - three"
 
-TOPIC="79079907/binance"
+#TOPIC="79079907/binance"
 #TOPIC="194676400/one"
+TOPIC="765497286/test"
+
 
 mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} -t ${TOPIC} -m "${PAYLOAD}"
 

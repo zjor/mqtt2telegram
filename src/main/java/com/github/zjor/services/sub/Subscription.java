@@ -1,4 +1,4 @@
-package com.github.zjor.sub;
+package com.github.zjor.services.sub;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,8 +39,8 @@ public class Subscription {
     public Document asDocument() {
         return new Document()
                 .append(KEY_ID, id)
-                .append("userId", userId)
-                .append("topic", topic)
-                .append("createdAt", createdAt);
+                .append(KEY_USER_ID, userId)
+                .append(KEY_TOPIC, topic)
+                .append(KEY_CREATED_AT, createdAt);
     }
 }

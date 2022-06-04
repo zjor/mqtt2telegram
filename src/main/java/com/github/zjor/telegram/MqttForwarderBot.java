@@ -1,14 +1,17 @@
 package com.github.zjor.telegram;
 
-import com.github.zjor.sub.Subscription;
-import com.github.zjor.sub.SubscriptionService;
+import com.github.zjor.services.sub.Subscription;
+import com.github.zjor.services.sub.SubscriptionService;
+import com.github.zjor.services.users.UserService;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.objects.Locality;
+import org.telegram.abilitybots.api.objects.MessageContext;
 import org.telegram.abilitybots.api.objects.Privacy;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -24,6 +27,7 @@ public class MqttForwarderBot extends AbilityBot {
     private final String mqttUser;
     private final String mqttPassword;
 
+    private final UserService userService;
     private final SubscriptionService subscriptionService;
 
     @Inject
@@ -33,11 +37,13 @@ public class MqttForwarderBot extends AbilityBot {
             String mqttUser,
             String mqttPassword,
             Mqtt5BlockingClient mqttClient,
+            UserService userService,
             SubscriptionService subscriptionService) {
         super(token, botUsername);
         this.mqttUser = mqttUser;
         this.mqttPassword = mqttPassword;
         this.mqttClient = mqttClient;
+        this.userService = userService;
         this.subscriptionService = subscriptionService;
     }
 
@@ -93,6 +99,7 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
+                    ensureUserExists(ctx);
                     String topic = ctx.firstArg();
                     var fullTopicName = subscribe(ctx.chatId(), topic);
                     silent.sendMd("Subscribed to `" + fullTopicName + "`", ctx.chatId());
@@ -109,6 +116,7 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
+                    ensureUserExists(ctx);
                     List<Subscription> subs = subscriptionService.getMySubscriptions(String.valueOf(ctx.chatId()));
                     if (subs.isEmpty()) {
                         silent.send("No subscriptions", ctx.chatId());
@@ -131,6 +139,7 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
+                    ensureUserExists(ctx);
                     String topic = ctx.firstArg();
                     subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
                             .ifPresentOrElse(
@@ -157,6 +166,7 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
+                    ensureUserExists(ctx);
                     var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n");
                     msg.append("I'm Mqtt2TelegramBot, I can subscribe to MQTT topics and forward messages to you.\n");
                     msg.append("Please use `/commands` to see the list of available commands\n\n");
@@ -170,5 +180,17 @@ public class MqttForwarderBot extends AbilityBot {
         @Override
     public long creatorId() {
         return 79079907;
+    }
+
+    private void ensureUserExists(MessageContext ctx) {
+        User from = null;
+        if (ctx.update().hasMessage()) {
+            from = ctx.update().getMessage().getFrom();
+        } else if (ctx.update().hasEditedMessage()) {
+            from = ctx.update().getEditedMessage().getFrom();
+        }
+        if (from != null) {
+            userService.ensureExists(from);
+        }
     }
 }
