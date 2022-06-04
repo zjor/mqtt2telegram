@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Values.app }}-ingress
@@ -10,9 +10,13 @@ spec:
     - host: "{{ .Values.app }}.projects.royz.cc"
       http:
         paths:
-          - backend:
-              serviceName: {{ .Values.app }}
-              servicePort: 8080
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ .Values.app }}
+                port:
+                  number: 8080
   tls:
     - hosts:
         - {{ .Values.app }}.projects.royz.cc

@@ -36,9 +36,9 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 - [v] list my subscriptions
 - [v] support unsub
 - [v] deploy to my cluster
-- create users on `/start` with names and secret
+- [v] create users on `/start` with names and secret
 - provide credentials to subscribed users to use REST API
-- add rest API to mqtt with Javalin
+- [v] add rest API to mqtt with Javalin
 - rotate creds command
 - ask for an example `curl` command
 - restore subscriptions asynchronously
