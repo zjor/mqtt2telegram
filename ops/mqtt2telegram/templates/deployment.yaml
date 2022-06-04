@@ -19,6 +19,8 @@ spec:
         - image: "{{ .Values.image }}:{{ .Values.version }}"
           imagePullPolicy: Always
           name: {{ .Values.app }}
+          ports:
+            - containerPort: 8080
           env:
             - name: MONGO_URI
               valueFrom:
@@ -62,3 +64,20 @@ spec:
                   name: environment
                   key: TELEGRAM_BOT_USERNAME
                   optional: false
+          livenessProbe:
+            # failureThreshold: 10
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+          readinessProbe:
+            # failureThreshold: 10
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 12
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP

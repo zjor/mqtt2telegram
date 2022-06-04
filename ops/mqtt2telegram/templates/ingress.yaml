@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.app }}-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+    - host: "{{ .Values.app }}.projects.royz.cc"
+      http:
+        paths:
+          - backend:
+              serviceName: {{ .Values.app }}
+              servicePort: 8080
+  tls:
+    - hosts:
+        - {{ .Values.app }}.projects.royz.cc
+      secretName: {{ .Values.app }}-tls-secret
