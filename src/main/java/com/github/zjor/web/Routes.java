@@ -8,16 +8,17 @@ import static io.javalin.apibuilder.ApiBuilder.post;
 
 public class Routes implements EndpointGroup {
 
-    private final Rest2MqttHandler rest2MqttHandler;
+    private final Rest2MqttController rest2MqttController;
 
     @Inject
-    public Routes(Rest2MqttHandler rest2MqttHandler) {
-        this.rest2MqttHandler = rest2MqttHandler;
+    public Routes(Rest2MqttController rest2MqttController) {
+        this.rest2MqttController = rest2MqttController;
     }
 
     @Override
     public void addEndpoints() {
         get("/", ctx -> ctx.html("OK"), Role.ANYONE);
-        post("/api/v1.0/send", rest2MqttHandler, Role.AUTHENTICATED);
+        post("/api/v1.0/sendGlobally", rest2MqttController::sendGlobally, Role.AUTHENTICATED);
+        post("/api/v1.0/send", rest2MqttController::sendToMyTopic, Role.AUTHENTICATED);
     }
 }

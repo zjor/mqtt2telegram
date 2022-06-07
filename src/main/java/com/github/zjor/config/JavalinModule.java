@@ -2,7 +2,7 @@ package com.github.zjor.config;
 
 import com.github.zjor.services.users.UserService;
 import com.github.zjor.web.AccessManagerImpl;
-import com.github.zjor.web.Rest2MqttHandler;
+import com.github.zjor.web.Rest2MqttController;
 import com.github.zjor.web.Role;
 import com.github.zjor.web.Routes;
 import com.google.inject.AbstractModule;
@@ -20,7 +20,7 @@ public class JavalinModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(Rest2MqttHandler.class).asEagerSingleton();
+        bind(Rest2MqttController.class).asEagerSingleton();
         bind(Routes.class).asEagerSingleton();
     }
 
