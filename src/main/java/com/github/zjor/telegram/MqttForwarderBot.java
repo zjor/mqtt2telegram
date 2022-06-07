@@ -99,10 +99,14 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
-                    ensureUserExists(ctx);
+                    var u = ensureUserExists(ctx);
                     String topic = ctx.firstArg();
                     var fullTopicName = subscribe(ctx.chatId(), topic);
-                    silent.sendMd("Subscribed to `" + fullTopicName + "`", ctx.chatId());
+
+                    var message = new StringBuilder("Subscribed to `" + fullTopicName + "`\n");
+                    message.append("This is how to send messages to the topic:\n");
+                    message.append(mqttSendCommandExample(u, topic, "<message>"));
+                    silent.sendMd(message.toString(), ctx.chatId());
                 })
                 .build();
     }
@@ -142,7 +146,7 @@ public class MqttForwarderBot extends AbilityBot {
                     ensureUserExists(ctx);
                     String topic = ctx.firstArg();
                     var fullTopicName = ctx.chatId() + "/" + topic;
-                    mqttClient.unsubscribeWith().topicFilter(fullTopicName);
+                    mqttClient.unsubscribeWith().topicFilter(fullTopicName).send();
                     subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
                             .ifPresentOrElse(
                                     sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
@@ -177,6 +181,17 @@ public class MqttForwarderBot extends AbilityBot {
         }
     }
 
+    private String mqttSendCommandExample(com.github.zjor.services.users.User user, String topic, String message) {
+//        var baseUrl = "http://localhost:8080";
+        var baseUrl = "https://mqtt2telegram.projects.royz.cc";
+        var text = new StringBuilder("\n```\n");
+        text.append("http -a ").append(user.getTelegramId()).append(":");
+        text.append(user.getSecret()).append(' ').append(baseUrl).append("/api/v1.0/send ");
+        text.append("topic=").append(topic).append(' ');
+        text.append("payload='").append(message).append("'\n```\n");
+        return text.toString();
+    }
+
     @SuppressWarnings("unused")
     public Ability startAbility() {
         return Ability.builder()
@@ -186,18 +201,21 @@ public class MqttForwarderBot extends AbilityBot {
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(ctx -> {
-                    ensureUserExists(ctx);
-                    var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n");
+                    var u = ensureUserExists(ctx);
+                    var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n\n");
                     msg.append("I'm Mqtt2TelegramBot, I can subscribe to MQTT topics and forward messages to you.\n");
                     msg.append("Please use `/commands` to see the list of available commands\n\n");
-                    msg.append("Happy messaging!");
+                    msg.append("Use this command to send a message to the topic you are subscribed to\n");
+                    msg.append(mqttSendCommandExample(u, "<topic>", "<message>"));
+                    msg.append("Happy messaging!\n\n");
+                    msg.append("P.S. You might need to install [httpie](https://httpie.io/).");
+
                     silent.sendMd(msg.toString(), ctx.chatId());
                 })
                 .build();
     }
 
-
-        @Override
+    @Override
     public long creatorId() {
         return 79079907;
     }
