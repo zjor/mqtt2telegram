@@ -2,7 +2,9 @@ package com.github.zjor.web;
 
 import com.google.inject.Inject;
 import io.javalin.apibuilder.EndpointGroup;
-import static io.javalin.apibuilder.ApiBuilder.*;
+
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 public class Routes implements EndpointGroup {
 
@@ -15,7 +17,7 @@ public class Routes implements EndpointGroup {
 
     @Override
     public void addEndpoints() {
-        get("/", ctx -> ctx.html("OK"));
-        post("/api/v1.0/send", rest2MqttHandler);
+        get("/", ctx -> ctx.html("OK"), Role.ANYONE);
+        post("/api/v1.0/send", rest2MqttHandler, Role.AUTHENTICATED);
     }
 }

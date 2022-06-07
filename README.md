@@ -29,6 +29,10 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 - telegramBots
 - java mongo driver & atlas cloud
 
+### REST API Authentication
+
+Basic authorization of `telegramId:secret`
+
 ### TODO
 - [v] hide all creds to .env / config & gitignore
 - [v] configure persistence => atlas mongoDB

@@ -11,6 +11,7 @@ import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody;
+import io.javalin.plugin.openapi.annotations.OpenApiSecurity;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ public class Rest2MqttHandler implements Handler {
     }
 
     @OpenApi(
+            security = @OpenApiSecurity(name = "bearerAuth"),
             requestBody = @OpenApiRequestBody(content = {@OpenApiContent(from = SendMessageRequest.class)})
     )
     @Override

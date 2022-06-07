@@ -1,6 +1,9 @@
 package com.github.zjor.config;
 
+import com.github.zjor.services.users.UserService;
+import com.github.zjor.web.AccessManagerImpl;
 import com.github.zjor.web.Rest2MqttHandler;
+import com.github.zjor.web.Role;
 import com.github.zjor.web.Routes;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -27,16 +30,25 @@ public class JavalinModule extends AbstractModule {
                 .description("MQTT-to-Telegram Sender");
         return new OpenApiOptions(applicationInfo)
                 .path("/swagger-docs")
-                .swagger(new SwaggerOptions("/swagger").title("Universal JSON API :: Swagger"))
-                .reDoc(new ReDocOptions("/redoc").title("Universal JSON API :: ReDoc"));
+                .swagger(new SwaggerOptions("/swagger").title("Mqtt2Telegram :: Swagger"))
+                .reDoc(new ReDocOptions("/redoc").title("Mqtt2Telegram :: ReDoc"))
+                .roles(Role.ANYONE);
     }
 
     @Inject
     @Provides
     @Singleton
-    protected Javalin javalin(Routes routes) {
+    private AccessManagerImpl accessManager(UserService userService) {
+        return new AccessManagerImpl(userService);
+    }
+
+    @Inject
+    @Provides
+    @Singleton
+    protected Javalin javalin(Routes routes, AccessManagerImpl accessManager) {
         var app = Javalin.create(config -> {
             config.registerPlugin(new OpenApiPlugin(getOpenApiOptions()));
+            config.accessManager(accessManager);
         });
 
         app.routes(routes);

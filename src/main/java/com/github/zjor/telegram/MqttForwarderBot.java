@@ -141,10 +141,30 @@ public class MqttForwarderBot extends AbilityBot {
                 .action(ctx -> {
                     ensureUserExists(ctx);
                     String topic = ctx.firstArg();
+                    var fullTopicName = ctx.chatId() + "/" + topic;
+                    mqttClient.unsubscribeWith().topicFilter(fullTopicName);
                     subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
                             .ifPresentOrElse(
                                     sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
                                     () -> silent.send("Topic was not found", ctx.chatId()));
+                })
+                .build();
+    }
+
+    @SuppressWarnings("unused")
+    public Ability showCredsAbility() {
+        return Ability.builder()
+                .name("creds")
+                .input(0)
+                .info("Shows credentials for basic authentication for the API calls")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(ctx -> {
+                    var u = ensureUserExists(ctx);
+                    var text = new StringBuilder("`")
+                            .append(u.getTelegramId()).append(":")
+                            .append(u.getSecret()).append("`");
+                    silent.sendMd(text.toString(), ctx.chatId());
                 })
                 .build();
     }
@@ -182,7 +202,7 @@ public class MqttForwarderBot extends AbilityBot {
         return 79079907;
     }
 
-    private void ensureUserExists(MessageContext ctx) {
+    private com.github.zjor.services.users.User ensureUserExists(MessageContext ctx) {
         User from = null;
         if (ctx.update().hasMessage()) {
             from = ctx.update().getMessage().getFrom();
@@ -190,7 +210,9 @@ public class MqttForwarderBot extends AbilityBot {
             from = ctx.update().getEditedMessage().getFrom();
         }
         if (from != null) {
-            userService.ensureExists(from);
+            return userService.ensureExists(from);
+        } else {
+            throw new IllegalArgumentException("Telegram user is not set");
         }
     }
 }
