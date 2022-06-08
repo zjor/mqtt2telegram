@@ -64,6 +64,12 @@ spec:
                   name: environment
                   key: TELEGRAM_BOT_USERNAME
                   optional: false
+            - name: API_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: API_BASE_URL
+                  optional: false
           livenessProbe:
             # failureThreshold: 10
             initialDelaySeconds: 90

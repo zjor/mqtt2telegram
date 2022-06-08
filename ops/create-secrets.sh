@@ -10,4 +10,5 @@ kubectl create secret generic environment \
   --from-literal=MQTT_PASSWORD=${MQTT_PASSWORD} \
   --from-literal=TELEGRAM_TOKEN=${TELEGRAM_TOKEN} \
   --from-literal=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME} \
+  --from-literal=API_BASE_URL=${API_BASE_URL} \
   -n app-mqtt2telegram

@@ -26,6 +26,7 @@ public class MqttForwarderBot extends AbilityBot {
     private final Mqtt5BlockingClient mqttClient;
     private final String mqttUser;
     private final String mqttPassword;
+    private final String apiBaseUrl;
 
     private final UserService userService;
     private final SubscriptionService subscriptionService;
@@ -37,12 +38,14 @@ public class MqttForwarderBot extends AbilityBot {
             String mqttUser,
             String mqttPassword,
             Mqtt5BlockingClient mqttClient,
+            String apiBaseUrl,
             UserService userService,
             SubscriptionService subscriptionService) {
         super(token, botUsername);
         this.mqttUser = mqttUser;
         this.mqttPassword = mqttPassword;
         this.mqttClient = mqttClient;
+        this.apiBaseUrl = apiBaseUrl;
         this.userService = userService;
         this.subscriptionService = subscriptionService;
     }
@@ -182,11 +185,9 @@ public class MqttForwarderBot extends AbilityBot {
     }
 
     private String mqttSendCommandExample(com.github.zjor.services.users.User user, String topic, String message) {
-//        var baseUrl = "http://localhost:8080";
-        var baseUrl = "https://mqtt2telegram.projects.royz.cc";
         var text = new StringBuilder("\n```\n");
         text.append("http -a ").append(user.getTelegramId()).append(":");
-        text.append(user.getSecret()).append(' ').append(baseUrl).append("/api/v1.0/send ");
+        text.append(user.getSecret()).append(' ').append(apiBaseUrl).append("/api/v1.0/send ");
         text.append("topic=").append(topic).append(' ');
         text.append("payload='").append(message).append("'\n```\n");
         return text.toString();
