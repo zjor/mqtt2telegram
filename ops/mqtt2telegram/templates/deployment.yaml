@@ -70,6 +70,8 @@ spec:
                   name: environment
                   key: API_BASE_URL
                   optional: false
+            - name: VCS_REF
+              value: {{ .Values.version }}
           livenessProbe:
             # failureThreshold: 10
             initialDelaySeconds: 90
