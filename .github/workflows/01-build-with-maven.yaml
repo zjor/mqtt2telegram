@@ -12,4 +12,5 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - run: echo $(docker --version)
+      - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD"
+      - run: sh ./docker-build-and-push.sh
