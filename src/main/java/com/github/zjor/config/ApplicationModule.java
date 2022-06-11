@@ -48,8 +48,10 @@ public class ApplicationModule extends AbstractModule {
     @Inject
     @Provides
     @Singleton
-    public TelegramBotRunner telegramBotRunner(MqttForwarderBot bot) {
-        return new TelegramBotRunner(bot);
+    public TelegramBotRunner telegramBotRunner(
+            MqttForwarderBot bot,
+            @Named(EnvironmentModule.VCS_REF) String vcsRef) {
+        return new TelegramBotRunner(bot, vcsRef);
     }
 
     @Provides

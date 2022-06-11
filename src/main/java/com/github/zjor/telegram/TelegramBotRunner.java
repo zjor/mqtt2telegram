@@ -10,10 +10,12 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class TelegramBotRunner {
 
     private final MqttForwarderBot bot;
+    private final String vcsRef;
 
     @Inject
-    public TelegramBotRunner(MqttForwarderBot bot) {
+    public TelegramBotRunner(MqttForwarderBot bot, String vcsRef) {
         this.bot = bot;
+        this.vcsRef = vcsRef;
     }
 
     public void start() {
@@ -22,6 +24,7 @@ public class TelegramBotRunner {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(bot);
             log.info("started");
+            bot.silent().sendMd("Started version: " + vcsRef, bot.creatorId());
         } catch (TelegramApiException e) {
             log.error("Failed to start telegram bot: " + e.getMessage(), e);
             throw new RuntimeException(e);
