@@ -60,4 +60,8 @@ public class SubscriptionService extends AbstractMongoService {
                 .collect(Collectors.toList());
     }
 
+    public long count() {
+        return c().countDocuments();
+    }
+
 }

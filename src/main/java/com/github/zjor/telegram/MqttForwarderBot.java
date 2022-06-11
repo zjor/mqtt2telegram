@@ -214,6 +214,22 @@ public class MqttForwarderBot extends AbilityBot {
         silent.sendMd(msg.toString(), ctx.chatId());
     }
 
+    @SuppressWarnings("unused")
+    public Ability adminStatsAbility() {
+        return Ability.builder()
+                .name("_stats")
+                .input(0)
+                .info("Shows statistics")
+                .locality(Locality.ALL)
+                .privacy(Privacy.CREATOR)
+                .action(ctx -> {
+                    var msg = new StringBuilder("Users: `").append(userService.count()).append('`');
+                    msg.append("\nSubscriptions: `").append(subscriptionService.count()).append("`");
+                    silent.sendMd(msg.toString(), ctx.chatId());
+                })
+                .build();
+    }
+
     @Override
     public long creatorId() {
         return creatorId;

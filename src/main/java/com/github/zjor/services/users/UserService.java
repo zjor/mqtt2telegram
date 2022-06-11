@@ -38,4 +38,8 @@ public class UserService extends AbstractMongoService {
         return ensureExists(tu.getId(), tu.getFirstName(), tu.getLastName(), tu.getUserName());
     }
 
+    public long count() {
+        return c().countDocuments();
+    }
+
 }
