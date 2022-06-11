@@ -2,14 +2,13 @@ package com.github.zjor.config;
 
 import com.github.zjor.services.sub.SubscriptionService;
 import com.github.zjor.services.users.UserService;
+import com.github.zjor.telegram.MqttClient;
 import com.github.zjor.telegram.MqttForwarderBot;
 import com.github.zjor.telegram.TelegramBotRunner;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
-import com.hivemq.client.mqtt.MqttClient;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
@@ -20,15 +19,12 @@ public class ApplicationModule extends AbstractModule {
     @Inject
     @Provides
     @Singleton
-    public Mqtt5BlockingClient mqttClient(
+    public MqttClient mqttClient(
             @Named(EnvironmentModule.MQTT_HOST) String host,
-            @Named(EnvironmentModule.MQTT_PORT) String port) {
-        return MqttClient.builder()
-                .useMqttVersion5()
-                .serverHost(host)
-                .serverPort(Integer.valueOf(port))
-                .sslWithDefaultConfig()
-                .buildBlocking();
+            @Named(EnvironmentModule.MQTT_PORT) String port,
+            @Named(EnvironmentModule.MQTT_USER) String user,
+            @Named(EnvironmentModule.MQTT_PASSWORD) String password) {
+        return new MqttClient(host, Integer.valueOf(port), user, password);
     }
 
     @Inject
@@ -37,15 +33,16 @@ public class ApplicationModule extends AbstractModule {
     public MqttForwarderBot mqttForwarderBot(
             @Named(EnvironmentModule.TELEGRAM_TOKEN) String token,
             @Named(EnvironmentModule.TELEGRAM_BOT_USERNAME) String botUsername,
-            @Named(EnvironmentModule.MQTT_USER) String mqttUser,
-            @Named(EnvironmentModule.MQTT_PASSWORD) String mqttPassword,
             @Named(EnvironmentModule.API_BASE_URL) String apiBaseUrl,
-            Mqtt5BlockingClient mqttClient,
+            MqttClient mqttClient,
             UserService userService,
             SubscriptionService subscriptionService) {
-        return new MqttForwarderBot(token, botUsername, mqttUser, mqttPassword, mqttClient,
+        return new MqttForwarderBot(token,
+                botUsername,
                 apiBaseUrl,
-                userService, subscriptionService);
+                mqttClient,
+                userService,
+                subscriptionService);
     }
 
     @Inject

@@ -2,10 +2,8 @@ package com.github.zjor.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.zjor.services.users.User;
+import com.github.zjor.telegram.MqttClient;
 import com.google.inject.Inject;
-import com.hivemq.client.mqtt.MqttClientState;
-import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.annotations.OpenApi;
@@ -22,12 +20,12 @@ import java.util.Map;
 public class Rest2MqttController {
 
     private final ObjectMapper mapper;
-    private final Mqtt5BlockingClient mqttClient;
+    private final MqttClient mqttClient;
 
     @Inject
     public Rest2MqttController(
             ObjectMapper mapper,
-            Mqtt5BlockingClient mqttClient) {
+            MqttClient mqttClient) {
         this.mapper = mapper;
         this.mqttClient = mqttClient;
     }
@@ -40,16 +38,12 @@ public class Rest2MqttController {
     public void sendGlobally(@NotNull Context ctx) throws Exception {
         var req = mapper.readValue(ctx.bodyAsInputStream(), SendMessageRequest.class);
         log.info("Request: {}", req);
-        if (mqttClient.getState() != MqttClientState.CONNECTED) {
+        if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
             ctx.status(HttpCode.INTERNAL_SERVER_ERROR);
-            ctx.json(Map.of("success", false, "mqttStatus", mqttClient.getState()));
+            ctx.json(Map.of("success", false));
         } else {
-            mqttClient.publishWith()
-                    .topic(req.getTopic())
-                    .qos(MqttQos.AT_LEAST_ONCE)
-                    .payload(req.getPayload().getBytes())
-                    .send();
+            mqttClient.publish(req.getTopic(), req.getPayload());
             ctx.json(Map.of("success", true));
         }
     }
@@ -62,18 +56,14 @@ public class Rest2MqttController {
     public void sendToMyTopic(@NotNull Context ctx) throws Exception {
         var req = mapper.readValue(ctx.bodyAsInputStream(), SendMessageRequest.class);
         log.info("Request: {}", req);
-        if (mqttClient.getState() != MqttClientState.CONNECTED) {
+        if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
             ctx.status(HttpCode.INTERNAL_SERVER_ERROR);
-            ctx.json(Map.of("success", false, "mqttStatus", mqttClient.getState()));
+            ctx.json(Map.of("success", false));
         } else {
             var user = (User)ctx.attribute("user");
             var topic = user.getTelegramId() + "/" + req.getTopic();
-            mqttClient.publishWith()
-                    .topic(topic)
-                    .qos(MqttQos.AT_LEAST_ONCE)
-                    .payload(req.getPayload().getBytes())
-                    .send();
+            mqttClient.publish(topic, req.getPayload());
             ctx.json(Map.of("success", true));
         }
     }

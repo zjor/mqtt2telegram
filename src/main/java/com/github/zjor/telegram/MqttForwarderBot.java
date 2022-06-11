@@ -3,7 +3,7 @@ package com.github.zjor.telegram;
 import com.github.zjor.services.sub.Subscription;
 import com.github.zjor.services.sub.SubscriptionService;
 import com.github.zjor.services.users.UserService;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.objects.Ability;
@@ -17,16 +17,14 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.hivemq.client.mqtt.MqttGlobalPublishFilter.ALL;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 public class MqttForwarderBot extends AbilityBot {
 
-    private final Mqtt5BlockingClient mqttClient;
-    private final String mqttUser;
-    private final String mqttPassword;
     private final String apiBaseUrl;
+
+    private final MqttClient mqttClient;
 
     private final UserService userService;
     private final SubscriptionService subscriptionService;
@@ -35,60 +33,47 @@ public class MqttForwarderBot extends AbilityBot {
     public MqttForwarderBot(
             String token,
             String botUsername,
-            String mqttUser,
-            String mqttPassword,
-            Mqtt5BlockingClient mqttClient,
             String apiBaseUrl,
+            MqttClient mqttClient,
             UserService userService,
             SubscriptionService subscriptionService) {
         super(token, botUsername);
-        this.mqttUser = mqttUser;
-        this.mqttPassword = mqttPassword;
-        this.mqttClient = mqttClient;
         this.apiBaseUrl = apiBaseUrl;
+        this.mqttClient = mqttClient;
         this.userService = userService;
         this.subscriptionService = subscriptionService;
     }
 
     public void init() {
-        mqttClient.connectWith()
-                .simpleAuth()
-                .username(mqttUser)
-                .password(UTF_8.encode(mqttPassword))
-                .applySimpleAuth()
-                .send();
-
+        mqttClient.connect();
         restoreSubscriptions();
+        mqttClient.setPublishListener(this::handlePublishMessage);
+    }
 
-        mqttClient.toAsync().publishes(ALL, msg -> {
-            log.info("[Message received] topic: {}; payload size: {}",
-                    msg.getTopic(),
-                    msg.getPayload().map(buf -> buf.remaining()).orElse(0));
+    private void handlePublishMessage(Mqtt5Publish msg) {
+        log.info("[Message received] topic: {}; payload size: {}",
+                msg.getTopic(),
+                msg.getPayload().map(buf -> buf.remaining()).orElse(0));
 
-            var levels = msg.getTopic().getLevels();
-            var chatId = levels.get(0);
-            var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
-            var message = "`[" + topic + "]`\n" +
-                    UTF_8.decode(msg.getPayload().get());
-            silent.sendMd(message, Long.valueOf(chatId));
-        });
+        var levels = msg.getTopic().getLevels();
+        var chatId = levels.get(0);
+        var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
+        var message = "`[" + topic + "]`\n" +
+                UTF_8.decode(msg.getPayload().get());
+        silent.sendMd(message, Long.valueOf(chatId));
     }
 
     private void restoreSubscriptions() {
         subscriptionService.getAllSubscriptions().forEach(sub -> {
             var fullTopicName = sub.getUserId() + "/" + sub.getTopic();
-            mqttClient.subscribeWith()
-                    .topicFilter(fullTopicName)
-                    .send();
+            mqttClient.subscribe(fullTopicName);
             log.info("Subscribed to {}", fullTopicName);
         });
     }
 
     private String subscribe(Long userId, String topic) {
         var fullTopicName = userId + "/" + topic;
-        mqttClient.subscribeWith()
-                .topicFilter(fullTopicName)
-                .send();
+        mqttClient.subscribe(fullTopicName);
         subscriptionService.subscribe(String.valueOf(userId), topic);
         return fullTopicName;
     }
@@ -149,7 +134,7 @@ public class MqttForwarderBot extends AbilityBot {
                     ensureUserExists(ctx);
                     String topic = ctx.firstArg();
                     var fullTopicName = ctx.chatId() + "/" + topic;
-                    mqttClient.unsubscribeWith().topicFilter(fullTopicName).send();
+                    mqttClient.unsubscribe(fullTopicName);
                     subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
                             .ifPresentOrElse(
                                     sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
