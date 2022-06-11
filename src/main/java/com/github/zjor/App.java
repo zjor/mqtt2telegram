@@ -21,5 +21,7 @@ public class App {
 
         var server = injector.getInstance(Javalin.class);
         server.start(8080);
+
+        botRunner.sendDeployedMessage();
     }
 }

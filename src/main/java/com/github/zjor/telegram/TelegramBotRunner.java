@@ -24,11 +24,14 @@ public class TelegramBotRunner {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(bot);
             log.info("started");
-            bot.silent().sendMd("Started version: " + vcsRef, bot.creatorId());
         } catch (TelegramApiException e) {
             log.error("Failed to start telegram bot: " + e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendDeployedMessage() {
+        bot.silent().sendMd("Started version: `" + vcsRef + "`", bot.creatorId());
     }
 
 }

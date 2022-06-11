@@ -9,12 +9,19 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
 import javax.inject.Singleton;
 
 public class ApplicationModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        //TODO: to env
+        bind(Long.class).annotatedWith(Names.named("creatorId")).toInstance(79079907L);
+    }
 
     @Inject
     @Provides
@@ -36,13 +43,14 @@ public class ApplicationModule extends AbstractModule {
             @Named(EnvironmentModule.API_BASE_URL) String apiBaseUrl,
             MqttClient mqttClient,
             UserService userService,
-            SubscriptionService subscriptionService) {
+            SubscriptionService subscriptionService,
+            @Named("creatorId") Long creatorId) {
         return new MqttForwarderBot(token,
                 botUsername,
                 apiBaseUrl,
                 mqttClient,
                 userService,
-                subscriptionService);
+                subscriptionService, creatorId);
     }
 
     @Inject

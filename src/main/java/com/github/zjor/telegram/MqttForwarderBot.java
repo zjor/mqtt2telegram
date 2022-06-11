@@ -29,6 +29,8 @@ public class MqttForwarderBot extends AbilityBot {
     private final UserService userService;
     private final SubscriptionService subscriptionService;
 
+    private final Long creatorId;
+
     @Inject
     public MqttForwarderBot(
             String token,
@@ -36,21 +38,22 @@ public class MqttForwarderBot extends AbilityBot {
             String apiBaseUrl,
             MqttClient mqttClient,
             UserService userService,
-            SubscriptionService subscriptionService) {
+            SubscriptionService subscriptionService, Long creatorId) {
         super(token, botUsername);
         this.apiBaseUrl = apiBaseUrl;
         this.mqttClient = mqttClient;
         this.userService = userService;
         this.subscriptionService = subscriptionService;
+        this.creatorId = creatorId;
     }
 
     public void init() {
         mqttClient.connect();
         restoreSubscriptions();
-        mqttClient.setPublishListener(this::handlePublishMessage);
+        mqttClient.setPublishListener(this::onMessage);
     }
 
-    private void handlePublishMessage(Mqtt5Publish msg) {
+    private void onMessage(Mqtt5Publish msg) {
         log.info("[Message received] topic: {}; payload size: {}",
                 msg.getTopic(),
                 msg.getPayload().map(buf -> buf.remaining()).orElse(0));
@@ -86,17 +89,19 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Subscribes to a topic. Usage: /sub <topic>")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(ctx -> {
-                    var u = ensureUserExists(ctx);
-                    String topic = ctx.firstArg();
-                    var fullTopicName = subscribe(ctx.chatId(), topic);
-
-                    var message = new StringBuilder("Subscribed to `" + fullTopicName + "`\n");
-                    message.append("This is how to send messages to the topic:\n");
-                    message.append(mqttSendCommandExample(u, topic, "<message>"));
-                    silent.sendMd(message.toString(), ctx.chatId());
-                })
+                .action(this::subscribeAbilityHandler)
                 .build();
+    }
+
+    private void subscribeAbilityHandler(MessageContext ctx) {
+        var u = ensureUserExists(ctx);
+        String topic = ctx.firstArg();
+        var fullTopicName = subscribe(ctx.chatId(), topic);
+
+        var message = new StringBuilder("Subscribed to `" + fullTopicName + "`\n");
+        message.append("This is how to send messages to the topic:\n");
+        message.append(mqttSendCommandExample(u, topic, "<message>"));
+        silent.sendMd(message.toString(), ctx.chatId());
     }
 
     @SuppressWarnings("unused")
@@ -107,19 +112,21 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Lists my subscriptions")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(ctx -> {
-                    ensureUserExists(ctx);
-                    List<Subscription> subs = subscriptionService.getMySubscriptions(String.valueOf(ctx.chatId()));
-                    if (subs.isEmpty()) {
-                        silent.send("No subscriptions", ctx.chatId());
-                    } else {
-                        StringBuilder msg = new StringBuilder("```\n");
-                        subs.forEach(s -> msg.append("- ").append(s.getTopic()).append('\n'));
-                        msg.append("```");
-                        silent.sendMd(msg.toString(), ctx.chatId());
-                    }
-                })
+                .action(this::listSubscriptionsAbilityHandler)
                 .build();
+    }
+
+    private void listSubscriptionsAbilityHandler(MessageContext ctx) {
+        ensureUserExists(ctx);
+        List<Subscription> subs = subscriptionService.getMySubscriptions(String.valueOf(ctx.chatId()));
+        if (subs.isEmpty()) {
+            silent.send("No subscriptions", ctx.chatId());
+        } else {
+            StringBuilder msg = new StringBuilder("```\n");
+            subs.forEach(s -> msg.append("- ").append(s.getTopic()).append('\n'));
+            msg.append("```");
+            silent.sendMd(msg.toString(), ctx.chatId());
+        }
     }
 
     @SuppressWarnings("unused")
@@ -130,17 +137,19 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Unsubscribes from the topic. Usage: /unsub <topic>")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(ctx -> {
-                    ensureUserExists(ctx);
-                    String topic = ctx.firstArg();
-                    var fullTopicName = ctx.chatId() + "/" + topic;
-                    mqttClient.unsubscribe(fullTopicName);
-                    subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
-                            .ifPresentOrElse(
-                                    sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
-                                    () -> silent.send("Topic was not found", ctx.chatId()));
-                })
+                .action(this::unsubscribeAbilityHandler)
                 .build();
+    }
+
+    private void unsubscribeAbilityHandler(MessageContext ctx) {
+        ensureUserExists(ctx);
+        String topic = ctx.firstArg();
+        var fullTopicName = ctx.chatId() + "/" + topic;
+        mqttClient.unsubscribe(fullTopicName);
+        subscriptionService.unsubscribe(String.valueOf(ctx.chatId()), topic)
+                .ifPresentOrElse(
+                        sub -> silent.sendMd("Unsubscribed from: `" + sub.getTopic() + "`", ctx.chatId()),
+                        () -> silent.send("Topic was not found", ctx.chatId()));
     }
 
     @SuppressWarnings("unused")
@@ -151,14 +160,16 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Shows credentials for basic authentication for the API calls")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(ctx -> {
-                    var u = ensureUserExists(ctx);
-                    var text = new StringBuilder("`")
-                            .append(u.getTelegramId()).append(":")
-                            .append(u.getSecret()).append("`");
-                    silent.sendMd(text.toString(), ctx.chatId());
-                })
+                .action(this::showCredsAbilityHandler)
                 .build();
+    }
+
+    private void showCredsAbilityHandler(MessageContext ctx) {
+        var u = ensureUserExists(ctx);
+        var text = new StringBuilder("`")
+                .append(u.getTelegramId()).append(":")
+                .append(u.getSecret()).append("`");
+        silent.sendMd(text.toString(), ctx.chatId());
     }
 
     private String resolveFirstName(Update update) {
@@ -186,24 +197,26 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Shows welcome message")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(ctx -> {
-                    var u = ensureUserExists(ctx);
-                    var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n\n");
-                    msg.append("I'm Mqtt2TelegramBot, I can subscribe to MQTT topics and forward messages to you.\n");
-                    msg.append("Please use `/commands` to see the list of available commands\n\n");
-                    msg.append("Use this command to send a message to the topic you are subscribed to\n");
-                    msg.append(mqttSendCommandExample(u, "<topic>", "<message>"));
-                    msg.append("Happy messaging!\n\n");
-                    msg.append("P.S. You might need to install [httpie](https://httpie.io/).");
-
-                    silent.sendMd(msg.toString(), ctx.chatId());
-                })
+                .action(this::startAbilityHandler)
                 .build();
+    }
+
+    private void startAbilityHandler(MessageContext ctx) {
+        var u = ensureUserExists(ctx);
+        var msg = new StringBuilder("Hello, ").append(resolveFirstName(ctx.update())).append("!\n\n");
+        msg.append("I'm Mqtt2TelegramBot, I can subscribe to MQTT topics and forward messages to you.\n");
+        msg.append("Please use `/commands` to see the list of available commands\n\n");
+        msg.append("Use this command to send a message to the topic you are subscribed to\n");
+        msg.append(mqttSendCommandExample(u, "<topic>", "<message>"));
+        msg.append("Happy messaging!\n\n");
+        msg.append("P.S. You might need to install [httpie](https://httpie.io/).");
+
+        silent.sendMd(msg.toString(), ctx.chatId());
     }
 
     @Override
     public long creatorId() {
-        return 79079907;
+        return creatorId;
     }
 
     private com.github.zjor.services.users.User ensureUserExists(MessageContext ctx) {
