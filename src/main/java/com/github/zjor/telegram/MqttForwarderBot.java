@@ -10,6 +10,7 @@ import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.objects.Locality;
 import org.telegram.abilitybots.api.objects.MessageContext;
 import org.telegram.abilitybots.api.objects.Privacy;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
@@ -210,7 +211,13 @@ public class MqttForwarderBot extends AbilityBot {
         msg.append("Happy messaging!\n\n");
         msg.append("P.S. You might need to install [httpie](https://httpie.io/).");
 
-        silent.sendMd(msg.toString(), ctx.chatId());
+        SendMessage sendMessage = SendMessage.builder()
+                .chatId(ctx.chatId().toString())
+                .text(msg.toString())
+                .build();
+        sendMessage.enableMarkdown(true);
+        sendMessage.disableWebPagePreview();
+        silent.execute(sendMessage);
     }
 
     @SuppressWarnings("unused")
