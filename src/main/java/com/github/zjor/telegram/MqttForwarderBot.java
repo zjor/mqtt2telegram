@@ -209,7 +209,8 @@ public class MqttForwarderBot extends AbilityBot {
         msg.append("Use this command to send a message to the topic you are subscribed to\n");
         msg.append(mqttSendCommandExample(u, "<topic>", "<message>"));
         msg.append("Happy messaging!\n\n");
-        msg.append("P.S. You might need to install [httpie](https://httpie.io/).");
+        msg.append("P.S. You might need to install [httpie](https://httpie.io/).\n");
+        msg.append("P.P.S. Fork me on [github](https://github.com/zjor/mqtt2telegram). ;)\n");
 
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(ctx.chatId().toString())
