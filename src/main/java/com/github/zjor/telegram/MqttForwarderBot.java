@@ -55,16 +55,20 @@ public class MqttForwarderBot extends AbilityBot {
     }
 
     private void onMessage(Mqtt5Publish msg) {
-        log.info("[Message received] topic: {}; payload size: {}",
-                msg.getTopic(),
-                msg.getPayload().map(buf -> buf.remaining()).orElse(0));
+        try {
+            log.info("[Message received] topic: {}; payload size: {}",
+                    msg.getTopic(),
+                    msg.getPayload().map(buf -> buf.remaining()).orElse(0));
 
-        var levels = msg.getTopic().getLevels();
-        var chatId = levels.get(0);
-        var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
-        var message = "`[" + topic + "]`\n" +
-                UTF_8.decode(msg.getPayload().get());
-        silent.sendMd(message, Long.valueOf(chatId));
+            var levels = msg.getTopic().getLevels();
+            var chatId = levels.get(0);
+            var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
+            var message = "`[" + topic + "]`\n" +
+                    UTF_8.decode(msg.getPayload().get());
+            silent.sendMd(message, Long.valueOf(chatId));
+        } catch (Throwable t) {
+            log.error("Failed to send telegram message: " + t.getMessage(), t);
+        }
     }
 
     private void restoreSubscriptions() {
