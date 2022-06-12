@@ -221,12 +221,34 @@ public class MqttForwarderBot extends AbilityBot {
                 .info("Shows statistics")
                 .locality(Locality.ALL)
                 .privacy(Privacy.CREATOR)
-                .action(ctx -> {
-                    var msg = new StringBuilder("Users: `").append(userService.count()).append('`');
-                    msg.append("\nSubscriptions: `").append(subscriptionService.count()).append("`");
-                    silent.sendMd(msg.toString(), ctx.chatId());
-                })
+                .action(this::adminStatsAbilityHandler)
                 .build();
+    }
+
+    private void adminStatsAbilityHandler(MessageContext ctx) {
+        var msg = new StringBuilder("\nUsers: `").append(userService.count()).append('`');
+        msg.append("\nSubscriptions: `").append(subscriptionService.count()).append("`");
+        silent.sendMd(msg.toString(), ctx.chatId());
+    }
+
+    @SuppressWarnings("unused")
+    public Ability httpieHelpAbility() {
+        return Ability.builder()
+                .name("httpie")
+                .input(1)
+                .info("Shows example command how to send a message via API")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(this::httpieHelpAbilityHandler)
+                .build();
+    }
+
+    private void httpieHelpAbilityHandler(MessageContext ctx) {
+        var topic = ctx.firstArg();
+        var msg = new StringBuilder("This is how you can send a message to the topic: `").append(topic).append("`\n");
+        var user = ensureUserExists(ctx);
+        msg.append(mqttSendCommandExample(user, topic, "<your message>"));
+        silent.sendMd(msg.toString(), ctx.chatId());
     }
 
     @Override
