@@ -3,6 +3,7 @@ package com.github.zjor;
 import com.github.zjor.config.ApplicationModule;
 import com.github.zjor.config.EnvironmentModule;
 import com.github.zjor.config.JavalinModule;
+import com.github.zjor.ext.guice.LoggingModule;
 import com.github.zjor.telegram.TelegramBotRunner;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -11,6 +12,7 @@ import io.javalin.Javalin;
 public class App {
     public static void main(String[] args) {
         Injector injector = Guice.createInjector(
+                new LoggingModule(),
                 new EnvironmentModule(),
                 new ApplicationModule(),
                 new JavalinModule()

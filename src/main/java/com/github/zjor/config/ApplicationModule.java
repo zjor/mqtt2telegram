@@ -21,17 +21,7 @@ public class ApplicationModule extends AbstractModule {
     protected void configure() {
         //TODO: to env
         bind(Long.class).annotatedWith(Names.named("creatorId")).toInstance(79079907L);
-    }
-
-    @Inject
-    @Provides
-    @Singleton
-    public MqttClient mqttClient(
-            @Named(EnvironmentModule.MQTT_HOST) String host,
-            @Named(EnvironmentModule.MQTT_PORT) String port,
-            @Named(EnvironmentModule.MQTT_USER) String user,
-            @Named(EnvironmentModule.MQTT_PASSWORD) String password) {
-        return new MqttClient(host, Integer.valueOf(port), user, password);
+        bind(MqttClient.class).asEagerSingleton();
     }
 
     @Inject

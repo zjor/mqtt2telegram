@@ -1,5 +1,8 @@
 package com.github.zjor.telegram;
 
+import com.github.zjor.config.EnvironmentModule;
+import com.github.zjor.ext.guice.Log;
+import com.google.inject.name.Named;
 import com.hivemq.client.mqtt.MqttClientState;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
@@ -20,8 +23,12 @@ public class MqttClient {
     private final Mqtt5BlockingClient mqttClient;
 
     @Inject
-    public MqttClient(String host, int port, String user, String password) {
-        this.mqttClient = buildClient(host, port);
+    public MqttClient(
+            @Named(EnvironmentModule.MQTT_HOST) String host,
+            @Named(EnvironmentModule.MQTT_PORT) String port,
+            @Named(EnvironmentModule.MQTT_USER) String user,
+            @Named(EnvironmentModule.MQTT_PASSWORD) String password) {
+        this.mqttClient = buildClient(host, Integer.valueOf(port));
         this.user = user;
         this.password = password;
     }
@@ -61,6 +68,7 @@ public class MqttClient {
         mqttClient.toAsync().publishes(ALL, consumer);
     }
 
+    @Log
     public void subscribe(String topic) {
         ensureConnected();
         mqttClient.subscribeWith()
@@ -68,11 +76,13 @@ public class MqttClient {
                 .send();
     }
 
+    @Log
     public void unsubscribe(String topic) {
         ensureConnected();
         mqttClient.unsubscribeWith().topicFilter(topic).send();
     }
 
+    @Log
     public void publish(String topic, String payload) {
         ensureConnected();
         mqttClient.publishWith()

@@ -70,7 +70,6 @@ public class MqttForwarderBot extends AbilityBot {
         subscriptionService.getAllSubscriptions().forEach(sub -> {
             var fullTopicName = sub.getUserId() + "/" + sub.getTopic();
             mqttClient.subscribe(fullTopicName);
-            log.info("Subscribed to {}", fullTopicName);
         });
     }
 
