@@ -1,37 +1,17 @@
-## Welcome to GitHub Pages
+## Enable telegram notifications in less than a minute!
 
-You can use the [editor on GitHub](https://github.com/zjor/mqtt2telegram/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+`Mqtt2TelegramBot` gives you secured personal API to send messages to Telegram. You can subscribe to topics and send messages to them via REST API.
+It uses MQTT under the hood, you can clone the repo and configure your own message broker and send messages directly.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Getting started
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+1. `/start` with the [bot](https://t.me/Mqtt2TelegramBot)
+2. Subscribe to a topic, e.g. `weather` by sending a message:
 ```
+/sub weather
+```
+3. Use a command in the response to send a message to the topic or use one of the snippets below to integrate notifications in your project.
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+[Python | NodeJS | JS]
+//TODO
 
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/zjor/mqtt2telegram/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
