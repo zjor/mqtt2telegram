@@ -1,6 +1,9 @@
 name: Build with Maven
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
 
 env:
   DOCKER_USER: ${{secrets.DOCKER_USER}}
