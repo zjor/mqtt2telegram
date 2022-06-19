@@ -35,7 +35,14 @@ requests.post(url, auth=(login, password), data=json.dumps(data))
 ### cURL
 
 ```bash
-# coming soon
+LOGIN=1234567 \
+PASSWORD=aaBBccEEdd \
+TOPIC=topic \
+MESSAGE="hello world" \
+curl -v -X POST -u "${LOGIN}:${PASSWORD}" \
+https://mqtt2telegram.projects.royz.cc/api/v1.0/send \
+-H "Content-Type: apllication/json" \
+-d "{\"topic\": \"${TOPIC}\", \"payload\": \"${MESSAGE}\"}"
 ```
 
 ### JavaScript
