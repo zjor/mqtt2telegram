@@ -48,8 +48,35 @@ https://mqtt2telegram.projects.royz.cc/api/v1.0/send \
 ### JavaScript
 
 ```javascript
+import got from "got"
 
-// coming soon
+async function sendMessage(login, password, topic, message) {
+  const url = 'https://mqtt2telegram.projects.royz.cc/api/v1.0/send'
+  const hash = btoa(`${login}:${password}`)
+  const options = {
+    headers: {
+      authorization: `Basic ${hash}`
+    }
+
+  }
+  const json = {
+    topic, 
+    payload: message
+  }
+  return got.post(url, {...options, json})
+}
+
+async function main() {
+  const login = '1234567'
+  const password = 'aaBBccEEdd'
+  const topic = 'topic'
+  const message = 'Hello from JavaScript'
+  
+  const res = await sendMessage(login, password, topic, message)
+  console.log(res)
+}
+
+main().catch(console.log)
 ```
 
 ## Features
