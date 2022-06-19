@@ -41,7 +41,7 @@ TOPIC=topic \
 MESSAGE="hello world" \
 curl -v -X POST -u "${LOGIN}:${PASSWORD}" \
 https://mqtt2telegram.projects.royz.cc/api/v1.0/send \
--H "Content-Type: apllication/json" \
+-H "Content-Type: application/json" \
 -d "{\"topic\": \"${TOPIC}\", \"payload\": \"${MESSAGE}\"}"
 ```
 
