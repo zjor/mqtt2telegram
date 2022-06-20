@@ -4,7 +4,9 @@ import com.github.zjor.services.sub.SubscriptionService;
 import com.github.zjor.services.users.UserService;
 import com.github.zjor.telegram.MqttClient;
 import com.github.zjor.telegram.MqttForwarderBot;
+import com.github.zjor.telegram.RestoreSubscriptionsJob;
 import com.github.zjor.telegram.TelegramBotRunner;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
@@ -22,6 +24,8 @@ public class ApplicationModule extends AbstractModule {
         //TODO: to env
         bind(Long.class).annotatedWith(Names.named("creatorId")).toInstance(79079907L);
         bind(MqttClient.class).asEagerSingleton();
+
+        bind(EventBus.class).asEagerSingleton();
     }
 
     @Inject
@@ -71,5 +75,14 @@ public class ApplicationModule extends AbstractModule {
     @Singleton
     public UserService userService(MongoClient mongoClient) {
         return new UserService(mongoClient);
+    }
+
+    @Inject
+    @Provides
+    @Singleton
+    public RestoreSubscriptionsJob restoreSubscriptionsJob(
+            SubscriptionService subscriptionService,
+            MqttClient mqttClient) {
+        return new RestoreSubscriptionsJob(subscriptionService, mqttClient);
     }
 }

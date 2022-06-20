@@ -50,7 +50,6 @@ public class MqttForwarderBot extends AbilityBot {
 
     public void init() {
         mqttClient.connect();
-        restoreSubscriptions();
         mqttClient.setPublishListener(this::onMessage);
     }
 
@@ -69,13 +68,6 @@ public class MqttForwarderBot extends AbilityBot {
         } catch (Throwable t) {
             log.error("Failed to send telegram message: " + t.getMessage(), t);
         }
-    }
-
-    private void restoreSubscriptions() {
-        subscriptionService.getAllSubscriptions().forEach(sub -> {
-            var fullTopicName = sub.getUserId() + "/" + sub.getTopic();
-            mqttClient.subscribe(fullTopicName);
-        });
     }
 
     private String subscribe(Long userId, String topic) {

@@ -2,11 +2,14 @@ package com.github.zjor.telegram;
 
 import com.github.zjor.config.EnvironmentModule;
 import com.github.zjor.ext.guice.Log;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.name.Named;
 import com.hivemq.client.mqtt.MqttClientState;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
@@ -21,13 +24,16 @@ public class MqttClient {
     private final String user;
     private final String password;
     private final Mqtt5BlockingClient mqttClient;
+    private final EventBus eventBus;
 
     @Inject
     public MqttClient(
             @Named(EnvironmentModule.MQTT_HOST) String host,
             @Named(EnvironmentModule.MQTT_PORT) String port,
             @Named(EnvironmentModule.MQTT_USER) String user,
-            @Named(EnvironmentModule.MQTT_PASSWORD) String password) {
+            @Named(EnvironmentModule.MQTT_PASSWORD) String password,
+            EventBus eventBus) {
+        this.eventBus = eventBus;
         this.mqttClient = buildClient(host, Integer.valueOf(port));
         this.user = user;
         this.password = password;
@@ -39,7 +45,10 @@ public class MqttClient {
                 .serverHost(host)
                 .serverPort(port)
                 .sslWithDefaultConfig()
-                .addConnectedListener(ctx -> log.info("Connected to MQTT"))
+                .addConnectedListener(ctx -> {
+                    log.info("Connected to MQTT");
+                    eventBus.post(new MqttConnectedEvent(ctx));
+                })
                 .addDisconnectedListener(ctx -> log.info("Disconnected from MQTT: {}", ctx.getSource()))
                 .buildBlocking();
     }
@@ -90,6 +99,11 @@ public class MqttClient {
                 .qos(MqttQos.AT_LEAST_ONCE)
                 .payload(payload.getBytes())
                 .send();
+    }
+
+    @AllArgsConstructor
+    public static class MqttConnectedEvent {
+        public final MqttClientConnectedContext e;
     }
 
 }
