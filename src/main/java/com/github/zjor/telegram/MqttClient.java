@@ -2,6 +2,7 @@ package com.github.zjor.telegram;
 
 import com.github.zjor.config.EnvironmentModule;
 import com.github.zjor.ext.guice.Log;
+import com.github.zjor.telegram.events.SendMessageToCreatorEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.name.Named;
 import com.hivemq.client.mqtt.MqttClientState;
@@ -47,9 +48,13 @@ public class MqttClient {
                 .sslWithDefaultConfig()
                 .addConnectedListener(ctx -> {
                     log.info("Connected to MQTT");
+                    eventBus.post(new SendMessageToCreatorEvent("Connected to MQTT"));
                     eventBus.post(new MqttConnectedEvent(ctx));
                 })
-                .addDisconnectedListener(ctx -> log.info("Disconnected from MQTT: {}", ctx.getSource()))
+                .addDisconnectedListener(ctx -> {
+                    eventBus.post(new SendMessageToCreatorEvent("Disconnected from MQTT: " + ctx.getCause()));
+                    log.info("Disconnected from MQTT: {}", ctx.getSource());
+                })
                 .buildBlocking();
     }
 

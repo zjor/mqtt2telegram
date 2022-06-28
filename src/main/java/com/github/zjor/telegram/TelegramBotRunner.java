@@ -1,6 +1,7 @@
 package com.github.zjor.telegram;
 
-import com.google.inject.Inject;
+import com.github.zjor.telegram.events.SendMessageToCreatorEvent;
+import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -12,10 +13,12 @@ public class TelegramBotRunner {
     private final MqttForwarderBot bot;
     private final String vcsRef;
 
-    @Inject
-    public TelegramBotRunner(MqttForwarderBot bot, String vcsRef) {
+    private final EventBus eventBus;
+
+    public TelegramBotRunner(MqttForwarderBot bot, String vcsRef, EventBus eventBus) {
         this.bot = bot;
         this.vcsRef = vcsRef;
+        this.eventBus = eventBus;
     }
 
     public void start() {
@@ -31,7 +34,7 @@ public class TelegramBotRunner {
     }
 
     public void sendDeployedMessage() {
-        bot.silent().sendMd("Started version: `" + vcsRef + "`", bot.creatorId());
+        eventBus.post(new SendMessageToCreatorEvent("Started version: `" + vcsRef + "`"));
     }
 
 }

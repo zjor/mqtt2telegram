@@ -6,6 +6,7 @@ import com.github.zjor.telegram.MqttClient;
 import com.github.zjor.telegram.MqttForwarderBot;
 import com.github.zjor.telegram.RestoreSubscriptionsJob;
 import com.github.zjor.telegram.TelegramBotRunner;
+import com.github.zjor.telegram.TelegramEventSender;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -26,6 +27,7 @@ public class ApplicationModule extends AbstractModule {
         bind(MqttClient.class).asEagerSingleton();
 
         bind(EventBus.class).asEagerSingleton();
+        bind(TelegramEventSender.class).asEagerSingleton();
     }
 
     @Inject
@@ -52,8 +54,9 @@ public class ApplicationModule extends AbstractModule {
     @Singleton
     public TelegramBotRunner telegramBotRunner(
             MqttForwarderBot bot,
-            @Named(EnvironmentModule.VCS_REF) String vcsRef) {
-        return new TelegramBotRunner(bot, vcsRef);
+            @Named(EnvironmentModule.VCS_REF) String vcsRef,
+            EventBus eventBus) {
+        return new TelegramBotRunner(bot, vcsRef, eventBus);
     }
 
     @Provides
