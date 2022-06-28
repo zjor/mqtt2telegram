@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -253,6 +254,28 @@ public class MqttForwarderBot extends AbilityBot {
         var user = ensureUserExists(ctx);
         msg.append(mqttSendCommandExample(user, topic, "<your message>"));
         silent.sendMd(msg.toString(), ctx.chatId());
+    }
+
+    @SuppressWarnings("unused")
+    public Ability pingAbility() {
+        return Ability.builder()
+                .name("ping")
+                .info("Send message to myself via MQTT")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(this::pingAbilityHandler)
+                .build();
+    }
+
+    private void pingAbilityHandler(MessageContext ctx) {
+        var args = ctx.arguments();
+        if (args == null || args.length == 0) {
+            silent.sendMd("Usage: <topic> <message>", ctx.chatId());
+        } else {
+            var topic = ctx.chatId() + "/" + args[0];
+            var message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
+            mqttClient.publish(topic, message);
+        }
     }
 
     @Override
