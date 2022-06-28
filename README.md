@@ -18,9 +18,18 @@
 
 ## CLI commands
 
+### Send text message
+
 ```bash
 source .env
-mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} -t '79079907/binance' -m 'Hello'
+mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} -t '79079907/binance' -m 'Hello world'
+```
+
+### Send an image
+
+```bash
+source .env
+mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} -t '79079907/qotd' -m:file ~/tmp/img.jpeg -ct 'image:img.jpeg'
 ```
 
 ## Stack

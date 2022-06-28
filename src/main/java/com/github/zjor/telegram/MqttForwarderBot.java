@@ -3,6 +3,7 @@ package com.github.zjor.telegram;
 import com.github.zjor.services.sub.Subscription;
 import com.github.zjor.services.sub.SubscriptionService;
 import com.github.zjor.services.users.UserService;
+import com.hivemq.client.mqtt.datatypes.MqttUtf8String;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -11,10 +12,13 @@ import org.telegram.abilitybots.api.objects.Locality;
 import org.telegram.abilitybots.api.objects.MessageContext;
 import org.telegram.abilitybots.api.objects.Privacy;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,11 +65,21 @@ public class MqttForwarderBot extends AbilityBot {
                     msg.getPayload().map(buf -> buf.remaining()).orElse(0));
 
             var levels = msg.getTopic().getLevels();
-            var chatId = levels.get(0);
+            var chatId = Long.valueOf(levels.get(0));
             var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
             var message = "`[" + topic + "]`\n" +
                     UTF_8.decode(msg.getPayload().get());
-            silent.sendMd(message, Long.valueOf(chatId));
+
+            var contentType = msg.getContentType().orElse(MqttUtf8String.of("text")).toString();
+            if (contentType.startsWith("image")) {
+                var sendPhoto = SendPhoto.builder()
+                        .chatId(String.valueOf(chatId))
+                        .photo(new InputFile(new ByteArrayInputStream(msg.getPayloadAsBytes()), "image.png"))
+                        .build();
+                sender.sendPhoto(sendPhoto);
+            } else {
+                silent.sendMd(message, chatId);
+            }
         } catch (Throwable t) {
             log.error("Failed to send telegram message: " + t.getMessage(), t);
         }
@@ -260,7 +274,7 @@ public class MqttForwarderBot extends AbilityBot {
     public Ability pingAbility() {
         return Ability.builder()
                 .name("ping")
-                .info("Send message to myself via MQTT")
+                .info("Sends message to myself via MQTT. Usage: <topic> <message>")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
                 .action(this::pingAbilityHandler)
