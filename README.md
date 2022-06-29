@@ -42,6 +42,18 @@ mqtt pub -h ${MQTT_HOST} -p 8883 -s -u ${MQTT_USER} --password ${MQTT_PASSWORD} 
 
 Basic authorization of `telegramId:secret`
 
+## API call examples
+
+1. Send a message to my `topic`
+
+```bash
+http -a ${TELEGRAM_ID}:${SECRET} https://mqtt2telegram.projects.royz.cc/api/v1.0/send topic=topic payload='<your message>'
+```
+2. Send an image to my `topic`
+
+```bash
+http -a ${TELEGRAM_ID}:${SECRET} --multipart https://mqtt2telegram.projects.royz.cc/api/v1.0/sendImage topic=images image@image.jpeg
+```
 ## Libraries
 - [Telegram Bot API](https://github.com/rubenlagus/TelegramBots)
 - [HiveMQ MQTT client](https://github.com/hivemq/hivemq-mqtt-client)

@@ -67,8 +67,6 @@ public class MqttForwarderBot extends AbilityBot {
             var levels = msg.getTopic().getLevels();
             var chatId = Long.valueOf(levels.get(0));
             var topic = levels.subList(1, levels.size()).stream().collect(Collectors.joining("/"));
-            var message = "`[" + topic + "]`\n" +
-                    UTF_8.decode(msg.getPayload().get());
 
             var contentType = msg.getContentType().orElse(MqttUtf8String.of("text")).toString();
             if (contentType.startsWith("image")) {
@@ -78,6 +76,9 @@ public class MqttForwarderBot extends AbilityBot {
                         .build();
                 sender.sendPhoto(sendPhoto);
             } else {
+                var message = "`[" + topic + "]`\n" +
+                        UTF_8.decode(msg.getPayload().get());
+
                 silent.sendMd(message, chatId);
             }
         } catch (Throwable t) {

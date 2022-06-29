@@ -1,6 +1,7 @@
 package com.github.zjor.web;
 
 import com.github.zjor.config.EnvironmentModule;
+import com.github.zjor.web.validator.ContentTypeValidator;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import io.javalin.apibuilder.EndpointGroup;
@@ -28,8 +29,9 @@ public class Routes implements EndpointGroup {
     public void addEndpoints() {
         get("/", ctx -> ctx.html("OK"), Role.ANYONE);
         get("/version", this::versionHandler, Role.ANYONE);
-        post("/api/v1.0/sendGlobally", rest2MqttController::sendGlobally, Role.AUTHENTICATED);
-        post("/api/v1.0/send", rest2MqttController::sendToMyTopic, Role.AUTHENTICATED);
+        post("/api/v1.0/sendGlobally", ContentTypeValidator.json(rest2MqttController::sendGlobally), Role.AUTHENTICATED);
+        post("/api/v1.0/send", ContentTypeValidator.json(rest2MqttController::sendToMyTopic), Role.AUTHENTICATED);
+        post("/api/v1.0/sendImage", rest2MqttController::sendImageToMyTopic, Role.AUTHENTICATED);
     }
 
     private void versionHandler(Context ctx) {

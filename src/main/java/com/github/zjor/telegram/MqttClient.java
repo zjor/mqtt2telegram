@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
+import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 import static com.hivemq.client.mqtt.MqttGlobalPublishFilter.ALL;
@@ -103,6 +104,16 @@ public class MqttClient {
                 .topic(topic)
                 .qos(MqttQos.AT_LEAST_ONCE)
                 .payload(payload.getBytes())
+                .send();
+    }
+
+    public void publish(String topic, String filename, ByteBuffer payload) {
+        ensureConnected();
+        mqttClient.publishWith()
+                .topic(topic)
+                .qos(MqttQos.AT_LEAST_ONCE)
+                .contentType("image:" + filename)
+                .payload(payload)
                 .send();
     }
 

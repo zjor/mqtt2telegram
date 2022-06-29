@@ -12,8 +12,10 @@ import io.javalin.plugin.openapi.annotations.OpenApiRequestBody;
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 @Slf4j
@@ -40,8 +42,7 @@ public class Rest2MqttController {
         log.info("Request: {}", req);
         if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
-            ctx.status(HttpCode.INTERNAL_SERVER_ERROR);
-            ctx.json(Map.of("success", false));
+            error(ctx, HttpCode.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
         } else {
             mqttClient.publish(req.getTopic(), req.getPayload());
             ctx.json(Map.of("success", true));
@@ -58,14 +59,45 @@ public class Rest2MqttController {
         log.info("Request: {}", req);
         if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
-            ctx.status(HttpCode.INTERNAL_SERVER_ERROR);
-            ctx.json(Map.of("success", false));
+            error(ctx, HttpCode.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
         } else {
-            var user = (User)ctx.attribute("user");
+            var user = (User) ctx.attribute("user");
             var topic = user.getTelegramId() + "/" + req.getTopic();
             mqttClient.publish(topic, req.getPayload());
             ctx.json(Map.of("success", true));
         }
+    }
+
+    @OpenApi(
+            summary = "Sends an image to MQTT"
+    )
+    public void sendImageToMyTopic(@NotNull Context ctx) throws Exception {
+        var topic = ctx.formParam("topic");
+        if (StringUtils.isEmpty(topic)) {
+            error(ctx, HttpCode.BAD_REQUEST, "topic is empty");
+            return;
+        }
+
+        var files = ctx.uploadedFiles();
+        if (files.isEmpty()) {
+            error(ctx, HttpCode.BAD_REQUEST, "no image");
+            return;
+        }
+        var user = (User) ctx.attribute("user");
+        var image = files.get(0);
+        var imageContent = image.getContent();
+
+        mqttClient.publish(
+                user.getTelegramId() + "/" + topic,
+                image.getFilename(),
+                ByteBuffer.wrap(imageContent.readAllBytes()));
+
+        ctx.json(Map.of("success", true));
+    }
+
+    private void error(@NotNull Context ctx, HttpCode code, String message) {
+        ctx.status(code);
+        ctx.json(Map.of("success", false, "message", message));
     }
 
     @Data
