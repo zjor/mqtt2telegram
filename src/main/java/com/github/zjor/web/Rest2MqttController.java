@@ -8,6 +8,7 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiFormParam;
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody;
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity;
 import lombok.Data;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
@@ -68,8 +70,13 @@ public class Rest2MqttController {
         }
     }
 
+    // TODO: fix OpenApi description
     @OpenApi(
-            summary = "Sends an image to MQTT"
+            summary = "Sends an image to MQTT",
+            formParams = {
+                    @OpenApiFormParam(name = "topic", required = true),
+                    @OpenApiFormParam(name = "image", required = true, type = File.class),
+            }
     )
     public void sendImageToMyTopic(@NotNull Context ctx) throws Exception {
         var topic = ctx.formParam("topic");
