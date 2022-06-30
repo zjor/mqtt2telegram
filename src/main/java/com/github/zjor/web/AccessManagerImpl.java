@@ -6,11 +6,13 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.RouteRole;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.http.HttpCode;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+
+import static com.github.zjor.web.Rest2MqttController.error;
 
 @Slf4j
 public class AccessManagerImpl implements AccessManager {
@@ -35,14 +37,14 @@ public class AccessManagerImpl implements AccessManager {
                     ctx.attribute("user", userOpt.get());
                     handler.handle(ctx);
                 } else {
-                    ctx.status(HttpStatus.UNAUTHORIZED_401).result("User was not found");
+                    error(ctx, HttpCode.UNAUTHORIZED, "User was not found");
                 }
             } catch (Exception e) {
                 log.warn("Basic authentication failed: {}", e.getMessage(), e);
-                ctx.status(HttpStatus.UNAUTHORIZED_401).result("Basic authentication failed: " + e.getMessage());
+                error(ctx, HttpCode.UNAUTHORIZED, "Basic authentication failed: " + e.getMessage());
             }
         } else {
-            ctx.status(HttpStatus.UNAUTHORIZED_401).result("Unauthorized");
+            error(ctx, HttpCode.UNAUTHORIZED, "Unauthorized");
         }
     }
 }

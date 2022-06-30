@@ -6,8 +6,10 @@ import com.github.zjor.telegram.MqttClient;
 import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
+import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiFileUpload;
 import io.javalin.plugin.openapi.annotations.OpenApiFormParam;
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody;
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity;
@@ -16,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
@@ -70,12 +71,15 @@ public class Rest2MqttController {
         }
     }
 
-    // TODO: fix OpenApi description
     @OpenApi(
+            path = "/api/v1.0/sendImage",
+            method = HttpMethod.POST,
             summary = "Sends an image to MQTT",
             formParams = {
                     @OpenApiFormParam(name = "topic", required = true),
-                    @OpenApiFormParam(name = "image", required = true, type = File.class),
+            },
+            fileUploads = {
+                    @OpenApiFileUpload(name="image")
             }
     )
     public void sendImageToMyTopic(@NotNull Context ctx) throws Exception {
