@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import io.javalin.Javalin;
+import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
@@ -52,6 +53,9 @@ public class JavalinModule extends AbstractModule {
         });
 
         app.routes(routes);
+        app.exception(Exception.class,
+                (e, ctx) -> Rest2MqttController.error(ctx, HttpCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+
         return app;
     }
 }

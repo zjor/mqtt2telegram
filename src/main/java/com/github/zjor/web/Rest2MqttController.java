@@ -102,7 +102,7 @@ public class Rest2MqttController {
         ctx.json(Map.of("success", true));
     }
 
-    private void error(@NotNull Context ctx, HttpCode code, String message) {
+    public static void error(@NotNull Context ctx, HttpCode code, String message) {
         ctx.status(code);
         ctx.json(Map.of("success", false, "message", message));
     }
