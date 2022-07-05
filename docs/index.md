@@ -1,3 +1,4 @@
+![logo](logo.jpeg)
 # Enable telegram notifications for your project in less than a minute!
 
 ## Getting started
