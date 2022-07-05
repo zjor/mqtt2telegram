@@ -14,7 +14,6 @@ or one of the snippets of code below.
 ### Python
 
 ```python
-import json
 import requests
 
 url = "https://mqtt2telegram.projects.royz.cc/api/v1.0/send"
@@ -24,12 +23,12 @@ password = "aaBBccEEdd"
 
 topic = "YOUR_TOPIC"
 
-data = {
+json = {
     "topic": topic,
     "payload": "YOUR_MESSAGE"
 }
 
-requests.post(url, auth=(login, password), data=json.dumps(data))
+requests.post(url, auth=(login, password), json=json)
 ```
 
 ### cURL
