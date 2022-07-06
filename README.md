@@ -1,5 +1,5 @@
 # MQTT 2 Telegram
-![logo](docs/logo.jpeg)
+![logo](docs/logo.png)
 
 [@Mqtt2TelegramBot](https://t.me/Mqtt2TelegramBot) bot allows you to add notification in your project in minutes with almost no coding.
 Within the bot you subscribe to a `topic` of your choice. 
