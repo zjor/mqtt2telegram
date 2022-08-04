@@ -12,7 +12,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
@@ -22,10 +21,7 @@ public class ApplicationModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        //TODO: to env
-        bind(Long.class).annotatedWith(Names.named("creatorId")).toInstance(79079907L);
         bind(MqttClient.class).asEagerSingleton();
-
         bind(EventBus.class).asEagerSingleton();
         bind(TelegramEventSender.class).asEagerSingleton();
     }
@@ -37,16 +33,17 @@ public class ApplicationModule extends AbstractModule {
             @Named(EnvironmentModule.TELEGRAM_TOKEN) String token,
             @Named(EnvironmentModule.TELEGRAM_BOT_USERNAME) String botUsername,
             @Named(EnvironmentModule.API_BASE_URL) String apiBaseUrl,
+            @Named(EnvironmentModule.TELEGRAM_USER_ID) String creatorId,
             MqttClient mqttClient,
             UserService userService,
-            SubscriptionService subscriptionService,
-            @Named("creatorId") Long creatorId) {
+            SubscriptionService subscriptionService) {
         return new MqttForwarderBot(token,
                 botUsername,
                 apiBaseUrl,
                 mqttClient,
                 userService,
-                subscriptionService, creatorId);
+                subscriptionService,
+                Long.parseLong(creatorId));
     }
 
     @Inject

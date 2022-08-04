@@ -17,6 +17,7 @@ public class EnvironmentModule extends AbstractModule {
     public static final String MQTT_PORT = "MQTT_PORT";
     public static final String MQTT_USER = "MQTT_USER";
     public static final String MQTT_PASSWORD = "MQTT_PASSWORD";
+    public static final String TELEGRAM_USER_ID = "TELEGRAM_USER_ID";
     public static final String TELEGRAM_TOKEN = "TELEGRAM_TOKEN";
     public static final String TELEGRAM_BOT_USERNAME = "TELEGRAM_BOT_USERNAME";
     public static final String MONGO_URI = "MONGO_URI";
@@ -28,6 +29,7 @@ public class EnvironmentModule extends AbstractModule {
             MQTT_PORT,
             MQTT_USER,
             MQTT_PASSWORD,
+            TELEGRAM_USER_ID,
             TELEGRAM_TOKEN,
             TELEGRAM_BOT_USERNAME,
             MONGO_URI,

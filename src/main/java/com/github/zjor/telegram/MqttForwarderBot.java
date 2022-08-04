@@ -44,7 +44,8 @@ public class MqttForwarderBot extends AbilityBot {
             String apiBaseUrl,
             MqttClient mqttClient,
             UserService userService,
-            SubscriptionService subscriptionService, Long creatorId) {
+            SubscriptionService subscriptionService,
+            Long creatorId) {
         super(token, botUsername);
         this.apiBaseUrl = apiBaseUrl;
         this.mqttClient = mqttClient;

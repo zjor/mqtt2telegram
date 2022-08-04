@@ -52,6 +52,12 @@ spec:
                   name: environment
                   key: MQTT_PASSWORD
                   optional: false
+            - name: TELEGRAM_USER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: environment
+                  key: TELEGRAM_USER_ID
+                  optional: false
             - name: TELEGRAM_TOKEN
               valueFrom:
                 secretKeyRef:
