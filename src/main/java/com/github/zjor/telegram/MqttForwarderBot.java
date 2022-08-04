@@ -3,6 +3,7 @@ package com.github.zjor.telegram;
 import com.github.zjor.services.sub.Subscription;
 import com.github.zjor.services.sub.SubscriptionService;
 import com.github.zjor.services.users.UserService;
+import com.google.common.eventbus.Subscribe;
 import com.hivemq.client.mqtt.datatypes.MqttUtf8String;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,10 @@ public class MqttForwarderBot extends AbilityBot {
 
     public void init() {
         mqttClient.connect();
+    }
+
+    @Subscribe
+    public void onConnectedToMqtt(MqttClient.MqttConnectedEvent e) {
         mqttClient.setPublishListener(this::onMessage);
     }
 

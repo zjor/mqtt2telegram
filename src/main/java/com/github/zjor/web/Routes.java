@@ -32,6 +32,8 @@ public class Routes implements EndpointGroup {
         post("/api/v1.0/sendGlobally", ContentTypeValidator.json(rest2MqttController::sendGlobally), Role.AUTHENTICATED);
         post("/api/v1.0/send", ContentTypeValidator.json(rest2MqttController::sendToMyTopic), Role.AUTHENTICATED);
         post("/api/v1.0/sendImage", rest2MqttController::sendImageToMyTopic, Role.AUTHENTICATED);
+        post("/api/v1.0/admin/mqtt/connect", rest2MqttController::adminMqttConnect, Role.AUTHENTICATED);
+        post("/api/v1.0/admin/mqtt/disconnect", rest2MqttController::adminMqttDisconnect, Role.AUTHENTICATED);
     }
 
     private void versionHandler(Context ctx) {

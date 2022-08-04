@@ -53,8 +53,9 @@ public class MqttClient {
                     eventBus.post(new MqttConnectedEvent(ctx));
                 })
                 .addDisconnectedListener(ctx -> {
-                    eventBus.post(new SendMessageToCreatorEvent("Disconnected from MQTT: " + ctx.getCause()));
                     log.info("Disconnected from MQTT: {}", ctx.getSource());
+                    eventBus.post(new SendMessageToCreatorEvent("Disconnected from MQTT: " + ctx.getCause()));
+                    //TODO: start reconnection
                 })
                 .buildBlocking();
     }
@@ -72,7 +73,7 @@ public class MqttClient {
                 .send();
     }
 
-    private void ensureConnected() {
+    public void ensureConnected() {
         if (!isConnected()) {
             connect();
         }
@@ -115,6 +116,10 @@ public class MqttClient {
                 .contentType("image:" + filename)
                 .payload(payload)
                 .send();
+    }
+
+    public void disconnect() {
+        mqttClient.disconnect();
     }
 
     @AllArgsConstructor

@@ -4,6 +4,7 @@ import com.github.zjor.config.ApplicationModule;
 import com.github.zjor.config.EnvironmentModule;
 import com.github.zjor.config.JavalinModule;
 import com.github.zjor.ext.guice.LoggingModule;
+import com.github.zjor.telegram.MqttForwarderBot;
 import com.github.zjor.telegram.RestoreSubscriptionsJob;
 import com.github.zjor.telegram.TelegramBotRunner;
 import com.github.zjor.telegram.TelegramEventSender;
@@ -24,6 +25,7 @@ public class App {
         var eventBus = injector.getInstance(EventBus.class);
         eventBus.register(injector.getInstance(RestoreSubscriptionsJob.class));
         eventBus.register(injector.getInstance(TelegramEventSender.class));
+        eventBus.register(injector.getInstance(MqttForwarderBot.class));
 
         var botRunner = injector.getInstance(TelegramBotRunner.class);
         botRunner.start();

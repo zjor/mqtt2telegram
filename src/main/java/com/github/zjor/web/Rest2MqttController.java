@@ -24,15 +24,20 @@ import java.util.Map;
 @Slf4j
 public class Rest2MqttController {
 
+    private static final Map<String, Object> DEFAULT_OK = Map.of("success", true);
+
     private final ObjectMapper mapper;
     private final MqttClient mqttClient;
+    private final Long creatorTelegramId;
 
     @Inject
     public Rest2MqttController(
             ObjectMapper mapper,
-            MqttClient mqttClient) {
+            MqttClient mqttClient,
+            Long creatorTelegramId) {
         this.mapper = mapper;
         this.mqttClient = mqttClient;
+        this.creatorTelegramId = creatorTelegramId;
     }
 
     @OpenApi(
@@ -48,7 +53,7 @@ public class Rest2MqttController {
             error(ctx, HttpCode.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
         } else {
             mqttClient.publish(req.getTopic(), req.getPayload());
-            ctx.json(Map.of("success", true));
+            ctx.json(DEFAULT_OK);
         }
     }
 
@@ -67,7 +72,7 @@ public class Rest2MqttController {
             var user = (User) ctx.attribute("user");
             var topic = user.getTelegramId() + "/" + req.getTopic();
             mqttClient.publish(topic, req.getPayload());
-            ctx.json(Map.of("success", true));
+            ctx.json(DEFAULT_OK);
         }
     }
 
@@ -103,7 +108,27 @@ public class Rest2MqttController {
                 image.getFilename(),
                 ByteBuffer.wrap(imageContent.readAllBytes()));
 
-        ctx.json(Map.of("success", true));
+        ctx.json(DEFAULT_OK);
+    }
+
+    public void adminMqttConnect(@NotNull Context ctx) {
+        var user = (User)ctx.attribute("user");
+        if (user.getTelegramId() == creatorTelegramId) {
+            mqttClient.ensureConnected();
+            ctx.json(DEFAULT_OK);
+        } else {
+            error(ctx, HttpCode.UNAUTHORIZED, "Not a creator");
+        }
+    }
+
+    public void adminMqttDisconnect(@NotNull Context ctx) {
+        var user = (User)ctx.attribute("user");
+        if (user.getTelegramId() == creatorTelegramId) {
+            mqttClient.disconnect();
+            ctx.json(DEFAULT_OK);
+        } else {
+            error(ctx, HttpCode.UNAUTHORIZED, "Not a creator");
+        }
     }
 
     public static void error(@NotNull Context ctx, HttpCode code, String message) {
