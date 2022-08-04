@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.hivemq.client.mqtt.MqttGlobalPublishFilter.ALL;
@@ -27,6 +30,7 @@ public class MqttClient {
     private final String password;
     private final Mqtt5BlockingClient mqttClient;
     private final EventBus eventBus;
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     @Inject
     public MqttClient(
@@ -55,13 +59,13 @@ public class MqttClient {
                 .addDisconnectedListener(ctx -> {
                     log.info("Disconnected from MQTT: {}", ctx.getSource());
                     eventBus.post(new SendMessageToCreatorEvent("Disconnected from MQTT: " + ctx.getCause()));
-                    //TODO: start reconnection
+                    scheduleReconnect();
                 })
                 .buildBlocking();
     }
 
     public boolean isConnected() {
-        return mqttClient.getState() == MqttClientState.CONNECTED;
+        return mqttClient.getState().isConnected();
     }
 
     public void connect() {
@@ -120,6 +124,20 @@ public class MqttClient {
 
     public void disconnect() {
         mqttClient.disconnect();
+    }
+
+    private void scheduleReconnect() {
+        executorService.schedule(() -> {
+            log.info("Reconnecting to MQTT...");
+            if (mqttClient.getState().isConnectedOrReconnect()) {
+                log.info("Already connected");
+                return;
+            }
+            if (mqttClient.getState() == MqttClientState.DISCONNECTED) {
+                connect();
+            }
+            scheduleReconnect();
+        }, 3, TimeUnit.SECONDS);
     }
 
     @AllArgsConstructor
