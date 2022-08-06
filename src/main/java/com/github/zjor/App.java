@@ -15,6 +15,8 @@ import io.javalin.Javalin;
 
 public class App {
     public static void main(String[] args) {
+        System.setProperty("jdk.tls.client.protocols", "TLSv1.2");
+
         Injector injector = Guice.createInjector(
                 new LoggingModule(),
                 new EnvironmentModule(),

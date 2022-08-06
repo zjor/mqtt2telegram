@@ -12,6 +12,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
@@ -19,8 +20,11 @@ import javax.inject.Singleton;
 
 public class ApplicationModule extends AbstractModule {
 
+    public static final String MONGO_DB_NAME = "mongo.dbName";
+
     @Override
     protected void configure() {
+        bind(String.class).annotatedWith(Names.named(MONGO_DB_NAME)).toInstance("mqtt2telegram");
         bind(MqttClient.class).asEagerSingleton();
         bind(EventBus.class).asEagerSingleton();
         bind(TelegramEventSender.class).asEagerSingleton();
@@ -66,15 +70,19 @@ public class ApplicationModule extends AbstractModule {
     @Inject
     @Provides
     @Singleton
-    public SubscriptionService subscriptionService(MongoClient mongoClient) {
-        return new SubscriptionService(mongoClient);
+    public SubscriptionService subscriptionService(
+            MongoClient mongoClient,
+            @Named(MONGO_DB_NAME) String dbName) {
+        return new SubscriptionService(mongoClient, dbName);
     }
 
     @Inject
     @Provides
     @Singleton
-    public UserService userService(MongoClient mongoClient) {
-        return new UserService(mongoClient);
+    public UserService userService(
+            MongoClient mongoClient,
+            @Named(MONGO_DB_NAME) String dbName) {
+        return new UserService(mongoClient, dbName);
     }
 
     @Inject

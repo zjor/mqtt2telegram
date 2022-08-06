@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -171,18 +172,18 @@ public class MqttForwarderBot extends AbilityBot {
     }
 
     @SuppressWarnings("unused")
-    public Ability showCredsAbility() {
+    public Ability showCredentialsAbility() {
         return Ability.builder()
                 .name("creds")
                 .input(0)
                 .info("Shows credentials for basic authentication for the API calls")
                 .locality(Locality.ALL)
                 .privacy(Privacy.PUBLIC)
-                .action(this::showCredsAbilityHandler)
+                .action(this::showCredentialsAbilityHandler)
                 .build();
     }
 
-    private void showCredsAbilityHandler(MessageContext ctx) {
+    private void showCredentialsAbilityHandler(MessageContext ctx) {
         var u = ensureUserExists(ctx);
         var text = new StringBuilder("`")
                 .append(u.getTelegramId()).append(":")
@@ -297,6 +298,27 @@ public class MqttForwarderBot extends AbilityBot {
             var message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
             mqttClient.publish(topic, message);
         }
+    }
+
+    @SuppressWarnings("unused")
+    public Ability changeCredentialsAbility() {
+        return Ability.builder()
+                .name("change")
+                .info("Generates new credentials for the API or sets from the argument")
+                .locality(Locality.ALL)
+                .privacy(Privacy.PUBLIC)
+                .action(this::changeCredentialsHandler)
+                .build();
+    }
+
+    private void changeCredentialsHandler(MessageContext ctx) {
+        var user = ensureUserExists(ctx);
+        var newSecret = ctx.arguments() != null && ctx.arguments().length > 0 ? ctx.arguments()[0] : null;
+        var updatedUser = userService.updateSecret(user.getTelegramId(), Optional.ofNullable(newSecret));
+        var text = new StringBuilder("`")
+                .append(updatedUser.getTelegramId()).append(":")
+                .append(updatedUser.getSecret()).append("`");
+        silent.sendMd(text.toString(), ctx.chatId());
     }
 
     @Override

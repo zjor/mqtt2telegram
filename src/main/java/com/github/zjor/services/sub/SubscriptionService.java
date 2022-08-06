@@ -21,8 +21,8 @@ public class SubscriptionService extends AbstractMongoService {
             -> new Document(Map.of(Subscription.KEY_USER_ID, userId));
 
 
-    public SubscriptionService(MongoClient client) {
-        super(client);
+    public SubscriptionService(MongoClient client, String dbName) {
+        super(client, dbName);
     }
 
     @Override

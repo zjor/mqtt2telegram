@@ -9,4 +9,4 @@ EXPOSE 8080
 
 ADD "target/mqtt2telegram-jar-with-dependencies.jar" "service.jar"
 
-CMD ["sh", "-c", "java -Djdk.tls.client.protocols=TLSv1.2 -jar service.jar"]
+CMD ["sh", "-c", "java -jar service.jar"]

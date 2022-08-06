@@ -22,3 +22,4 @@ kubectl create secret generic environment \
 ```
 helm upgrade --namespace app-mqtt2telegram --install mqtt2telegram --set version=latest ./ops/mqtt2telegram
 ```
+or run `../deploy-with-helm.sh` script

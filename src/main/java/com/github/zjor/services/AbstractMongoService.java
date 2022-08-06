@@ -7,19 +7,21 @@ import lombok.Getter;
 import org.bson.Document;
 
 public abstract class AbstractMongoService {
-    public static final String DB_NAME = "mqtt2telegram";
 
     @Getter
     private final MongoClient client;
 
-    public AbstractMongoService(MongoClient client) {
+    private final String dbName;
+
+    public AbstractMongoService(MongoClient client, String dbName) {
         this.client = client;
+        this.dbName = dbName;
     }
 
     protected abstract String getCollectionName();
 
     protected MongoDatabase d() {
-        return client.getDatabase(DB_NAME);
+        return client.getDatabase(dbName);
     }
 
     protected MongoCollection<Document> c() {
