@@ -62,6 +62,7 @@ public class JavalinModule extends AbstractModule {
         var app = Javalin.create(config -> {
             config.registerPlugin(new OpenApiPlugin(getOpenApiOptions()));
             config.accessManager(accessManager);
+            config.maxRequestSize = 25_000_000L;
         });
 
         app.routes(routes);
