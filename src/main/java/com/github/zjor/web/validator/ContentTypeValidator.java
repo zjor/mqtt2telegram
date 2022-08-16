@@ -2,7 +2,7 @@ package com.github.zjor.web.validator;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -29,7 +29,7 @@ public class ContentTypeValidator extends RequestValidator {
 
     @Override
     protected void failure(@NotNull Context ctx) {
-        ctx.status(HttpCode.BAD_REQUEST);
+        ctx.status(HttpStatus.BAD_REQUEST);
         ctx.json(Map.of(
                 "success", false,
                 "message", "expected Content-Type: " + contentType

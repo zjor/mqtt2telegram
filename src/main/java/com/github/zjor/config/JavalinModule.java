@@ -5,7 +5,6 @@ import com.github.zjor.services.users.UserService;
 import com.github.zjor.telegram.MqttClient;
 import com.github.zjor.web.AccessManagerImpl;
 import com.github.zjor.web.Rest2MqttController;
-import com.github.zjor.web.Role;
 import com.github.zjor.web.Routes;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -13,12 +12,12 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import io.javalin.Javalin;
-import io.javalin.http.HttpCode;
-import io.javalin.plugin.openapi.OpenApiOptions;
-import io.javalin.plugin.openapi.OpenApiPlugin;
-import io.javalin.plugin.openapi.ui.ReDocOptions;
-import io.javalin.plugin.openapi.ui.SwaggerOptions;
-import io.swagger.v3.oas.models.info.Info;
+import io.javalin.http.HttpStatus;
+import io.javalin.openapi.plugin.OpenApiConfiguration;
+import io.javalin.openapi.plugin.OpenApiInfo;
+import io.javalin.openapi.plugin.OpenApiPlugin;
+import io.javalin.openapi.plugin.swagger.SwaggerConfiguration;
+import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 
 public class JavalinModule extends AbstractModule {
 
@@ -27,15 +26,15 @@ public class JavalinModule extends AbstractModule {
         bind(Routes.class).asEagerSingleton();
     }
 
-    private OpenApiOptions getOpenApiOptions() {
-        final Info applicationInfo = new Info()
-                .version("1.0")
-                .description("MQTT-to-Telegram Sender");
-        return new OpenApiOptions(applicationInfo)
-                .path("/swagger-docs")
-                .swagger(new SwaggerOptions("/swagger").title("Mqtt2Telegram :: Swagger"))
-                .reDoc(new ReDocOptions("/redoc").title("Mqtt2Telegram :: ReDoc"))
-                .roles(Role.ANYONE);
+    private OpenApiConfiguration getOpenApiConfiguration() {
+        var config = new OpenApiConfiguration();
+        var info = new OpenApiInfo();
+        info.setTitle("Mqtt2Telegram");
+        info.setDescription("MQTT-to-Telegram Sender Bot");
+        info.setVersion("1.0");
+        config.setInfo(info);
+        config.setDocumentationPath("open-api");
+        return config;
     }
 
     @Inject
@@ -60,14 +59,20 @@ public class JavalinModule extends AbstractModule {
     @Singleton
     protected Javalin javalin(Routes routes, AccessManagerImpl accessManager) {
         var app = Javalin.create(config -> {
-            config.registerPlugin(new OpenApiPlugin(getOpenApiOptions()));
-            config.accessManager(accessManager);
-            config.maxRequestSize = 25_000_000L;
+            config.plugins.register(new OpenApiPlugin(getOpenApiConfiguration()));
+
+            var swaggerConfig = new SwaggerConfiguration();
+            swaggerConfig.setDocumentationPath("/swagger");
+            config.plugins.register(new SwaggerPlugin(swaggerConfig));
+
+            config.core.accessManager(accessManager);
+            config.http.maxRequestSize = 25_000_000L;
+
         });
 
         app.routes(routes);
         app.exception(Exception.class,
-                (e, ctx) -> Rest2MqttController.error(ctx, HttpCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+                (e, ctx) -> Rest2MqttController.error(ctx, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage()));
 
         return app;
     }

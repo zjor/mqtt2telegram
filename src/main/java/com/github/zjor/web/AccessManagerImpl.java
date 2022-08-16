@@ -2,11 +2,11 @@ package com.github.zjor.web;
 
 import com.github.zjor.services.users.UserService;
 import com.google.inject.Inject;
-import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.RouteRole;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatus;
+import io.javalin.security.AccessManager;
+import io.javalin.security.RouteRole;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public class AccessManagerImpl implements AccessManager {
     }
 
     @Override
-    public void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<RouteRole> routeRoles) throws Exception {
+    public void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<? extends RouteRole> routeRoles) throws Exception {
         if (routeRoles.contains(Role.ANYONE)) {
             handler.handle(ctx);
         } else if (routeRoles.contains(Role.AUTHENTICATED)) {
@@ -37,14 +37,15 @@ public class AccessManagerImpl implements AccessManager {
                     ctx.attribute("user", userOpt.get());
                     handler.handle(ctx);
                 } else {
-                    error(ctx, HttpCode.UNAUTHORIZED, "User was not found");
+                    error(ctx, HttpStatus.UNAUTHORIZED, "User was not found");
                 }
             } catch (Exception e) {
                 log.warn("Basic authentication failed: {}", e.getMessage(), e);
-                error(ctx, HttpCode.UNAUTHORIZED, "Basic authentication failed: " + e.getMessage());
+                error(ctx, HttpStatus.UNAUTHORIZED, "Basic authentication failed: " + e.getMessage());
             }
         } else {
-            error(ctx, HttpCode.UNAUTHORIZED, "Unauthorized");
+            error(ctx, HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
     }
+
 }

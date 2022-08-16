@@ -5,14 +5,14 @@ import com.github.zjor.services.users.User;
 import com.github.zjor.telegram.MqttClient;
 import com.google.inject.Inject;
 import io.javalin.http.Context;
-import io.javalin.http.HttpCode;
-import io.javalin.plugin.openapi.annotations.HttpMethod;
-import io.javalin.plugin.openapi.annotations.OpenApi;
-import io.javalin.plugin.openapi.annotations.OpenApiContent;
-import io.javalin.plugin.openapi.annotations.OpenApiFileUpload;
-import io.javalin.plugin.openapi.annotations.OpenApiFormParam;
-import io.javalin.plugin.openapi.annotations.OpenApiRequestBody;
-import io.javalin.plugin.openapi.annotations.OpenApiSecurity;
+import io.javalin.http.HttpStatus;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiFileUpload;
+import io.javalin.openapi.OpenApiFormParam;
+import io.javalin.openapi.OpenApiRequestBody;
+import io.javalin.openapi.OpenApiSecurity;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +41,8 @@ public class Rest2MqttController {
     }
 
     @OpenApi(
+            path = "/api/v1.0/sendGlobally",
+            methods = HttpMethod.POST,
             summary = "Sends message to MQTT broker to the topic provided in the request",
             security = @OpenApiSecurity(name = "basicAuth"),
             requestBody = @OpenApiRequestBody(content = {@OpenApiContent(from = SendMessageRequest.class)})
@@ -50,7 +52,7 @@ public class Rest2MqttController {
         log.info("Request: {}", req);
         if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
-            error(ctx, HttpCode.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
+            error(ctx, HttpStatus.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
         } else {
             mqttClient.publish(req.getTopic(), req.getPayload());
             ctx.json(DEFAULT_OK);
@@ -58,6 +60,8 @@ public class Rest2MqttController {
     }
 
     @OpenApi(
+            path = "/api/v1.0/send",
+            methods = HttpMethod.POST,
             summary = "Sends message to MQTT broker to the topic the user is subscribed to",
             security = @OpenApiSecurity(name = "basicAuth"),
             requestBody = @OpenApiRequestBody(content = {@OpenApiContent(from = SendMessageRequest.class)})
@@ -67,7 +71,7 @@ public class Rest2MqttController {
         log.info("Request: {}", req);
         if (!mqttClient.isConnected()) {
             log.warn("MQTT client not connected");
-            error(ctx, HttpCode.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
+            error(ctx, HttpStatus.INTERNAL_SERVER_ERROR, "MQTT client is not connected");
         } else {
             var user = (User) ctx.attribute("user");
             var topic = user.getTelegramId() + "/" + req.getTopic();
@@ -78,60 +82,60 @@ public class Rest2MqttController {
 
     @OpenApi(
             path = "/api/v1.0/sendImage",
-            method = HttpMethod.POST,
+            methods = HttpMethod.POST,
             summary = "Sends an image to MQTT",
             formParams = {
                     @OpenApiFormParam(name = "topic", required = true),
             },
             fileUploads = {
-                    @OpenApiFileUpload(name="image")
+                    @OpenApiFileUpload(name = "image")
             }
     )
     public void sendImageToMyTopic(@NotNull Context ctx) throws Exception {
         var topic = ctx.formParam("topic");
         if (StringUtils.isEmpty(topic)) {
-            error(ctx, HttpCode.BAD_REQUEST, "topic is empty");
+            error(ctx, HttpStatus.BAD_REQUEST, "topic is empty");
             return;
         }
 
         var files = ctx.uploadedFiles();
         if (files.isEmpty()) {
-            error(ctx, HttpCode.BAD_REQUEST, "no image");
+            error(ctx, HttpStatus.BAD_REQUEST, "no image");
             return;
         }
         var user = (User) ctx.attribute("user");
         var image = files.get(0);
-        var imageContent = image.getContent();
+        var imageContent = image.content();
 
         mqttClient.publish(
                 user.getTelegramId() + "/" + topic,
-                image.getFilename(),
+                image.filename(),
                 ByteBuffer.wrap(imageContent.readAllBytes()));
 
         ctx.json(DEFAULT_OK);
     }
 
     public void adminMqttConnect(@NotNull Context ctx) {
-        var user = (User)ctx.attribute("user");
+        var user = (User) ctx.attribute("user");
         if (user.getTelegramId() == creatorTelegramId) {
             mqttClient.ensureConnected();
             ctx.json(DEFAULT_OK);
         } else {
-            error(ctx, HttpCode.UNAUTHORIZED, "Not a creator");
+            error(ctx, HttpStatus.UNAUTHORIZED, "Not a creator");
         }
     }
 
     public void adminMqttDisconnect(@NotNull Context ctx) {
-        var user = (User)ctx.attribute("user");
+        var user = (User) ctx.attribute("user");
         if (user.getTelegramId() == creatorTelegramId) {
             mqttClient.disconnect();
             ctx.json(DEFAULT_OK);
         } else {
-            error(ctx, HttpCode.UNAUTHORIZED, "Not a creator");
+            error(ctx, HttpStatus.UNAUTHORIZED, "Not a creator");
         }
     }
 
-    public static void error(@NotNull Context ctx, HttpCode code, String message) {
+    public static void error(@NotNull Context ctx, HttpStatus code, String message) {
         ctx.status(code);
         ctx.json(Map.of("success", false, "message", message));
     }
