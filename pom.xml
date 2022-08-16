@@ -269,12 +269,12 @@
     <repositories>
         <!--Releases-->
         <repository>
-            <id>reposilite-repository</id>
+            <id>reposilite-releases</id>
             <url>https://maven.reposilite.com/releases</url>
         </repository>
         <!-- Snapshots -->
         <repository>
-            <id>reposilite-repository</id>
+            <id>reposilite-snapshots</id>
             <url>https://maven.reposilite.com/snapshots</url>
         </repository>
     </repositories>

@@ -51,8 +51,7 @@ public class MqttClient {
                 .serverHost(host)
                 .serverPort(port)
                 .sslWithDefaultConfig()
-                .addConnectedListener(ctx -> {
-                    log.info("Connected to MQTT");
+                .addConnectedListener(ctx -> {log.info("Connected to MQTT");
                     eventBus.post(new SendMessageToCreatorEvent("Connected to MQTT"));
                     eventBus.post(new MqttConnectedEvent(ctx));
                 })
