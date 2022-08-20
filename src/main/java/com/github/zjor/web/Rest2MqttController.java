@@ -84,6 +84,7 @@ public class Rest2MqttController {
             path = "/api/v1.0/sendImage",
             methods = HttpMethod.POST,
             summary = "Sends an image to MQTT",
+            security = @OpenApiSecurity(name = "basicAuth"),
             formParams = {
                     @OpenApiFormParam(name = "topic", required = true),
             },

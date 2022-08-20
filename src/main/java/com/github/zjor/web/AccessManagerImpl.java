@@ -28,7 +28,7 @@ public class AccessManagerImpl implements AccessManager {
     public void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<? extends RouteRole> routeRoles) throws Exception {
         if (routeRoles.contains(Role.ANYONE)) {
             handler.handle(ctx);
-        } else if (routeRoles.contains(Role.AUTHENTICATED)) {
+        } else if (routeRoles.contains(Role.AUTHENTICATED) && ctx.basicAuthCredentials() != null) {
             try {
                 var creds = ctx.basicAuthCredentials();
                 log.info("auth({}; {})", creds.getUsername(), creds.getPassword());
