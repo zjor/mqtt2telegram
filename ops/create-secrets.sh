@@ -1,10 +1,14 @@
 #!/bin/bash
 
-source ../.env
+source .env
+cat .env
 
-kubectl delete secret environment -n app-mqtt2telegram
+NAMESPACE=mqtt2telegram
+APP=mqtt2telegram
 
-kubectl create secret generic environment \
+kubectl delete secret ${APP}-secrets -n ${NAMESPACE}
+
+kubectl create secret generic ${APP}-secrets \
   --from-literal=MONGO_URI=${MONGO_URI} \
   --from-literal=MQTT_HOST=${MQTT_HOST} \
   --from-literal=MQTT_PORT=${MQTT_PORT} \
@@ -14,4 +18,4 @@ kubectl create secret generic environment \
   --from-literal=TELEGRAM_TOKEN=${TELEGRAM_TOKEN} \
   --from-literal=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME} \
   --from-literal=API_BASE_URL=${API_BASE_URL} \
-  -n app-mqtt2telegram
+  -n ${NAMESPACE}

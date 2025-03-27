@@ -25,59 +25,59 @@ spec:
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: MONGO_URI
                   optional: false
             - name: MQTT_HOST
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: MQTT_HOST
                   optional: false
             - name: MQTT_PORT
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: MQTT_PORT
                   optional: false
             - name: MQTT_USER
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: MQTT_USER
                   optional: false
             - name: MQTT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: MQTT_PASSWORD
                   optional: false
             - name: TELEGRAM_USER_ID
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: TELEGRAM_USER_ID
                   optional: false
             - name: TELEGRAM_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: TELEGRAM_TOKEN
                   optional: false
             - name: TELEGRAM_BOT_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: TELEGRAM_BOT_USERNAME
                   optional: false
             - name: API_BASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: environment
+                  name: {{ .Values.app }}-secrets
                   key: API_BASE_URL
                   optional: false
             - name: VCS_REF
-              value: {{ .Values.version }}
+              value: {{ .Values.version | quote}}
           livenessProbe:
             # failureThreshold: 10
             initialDelaySeconds: 90
