@@ -1,7 +1,8 @@
 #!/bin/bash
 
-NS=app-mqtt2telegram
+NS=mqtt2telegram
 APP=mqtt2telegram
+
 VERSION=$(git rev-parse --short HEAD)
 
 set -x
