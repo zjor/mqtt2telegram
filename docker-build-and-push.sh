@@ -8,6 +8,6 @@ IMAGE_NAME=${DOCKER_USER}/${IMAGE_NAME}:${TAG}
 
 set -x
 
-docker build -t ${IMAGE_NAME} .
+docker buildx build --platform linux/amd64 -t ${IMAGE} .
 docker tag ${IMAGE_NAME} ${IMAGE_NAME}
 docker push ${IMAGE_NAME}
